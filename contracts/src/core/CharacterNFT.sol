@@ -72,9 +72,34 @@ contract CharacterNFT is
     event ExperienceGained(uint256 indexed tokenId, uint256 amount);
     event NameChanged(uint256 indexed tokenId, string newName);
     event AttributePointsAssigned(uint256 indexed tokenId, uint8 pointsUsed);
-    event PriceUpdated(uint256 newBasePrice, uint256 newIncrement);
     event XPManagerAdded(address manager);
     event XPManagerRemoved(address manager);
+
+    // Population thresholds
+    uint256 public constant PHASE1_THRESHOLD = 1000;
+    uint256 public constant PHASE2_THRESHOLD = 5000;
+    uint256 public constant PHASE3_THRESHOLD = 10000;
+    
+    // Growth rate parameters
+    uint256 public phase2GrowthRate; // Represented as percentage * 100 (e.g., 1000 = 10%)
+    uint256 public phase3GrowthRate; // Base for exponential growth
+    uint256 public phase4GrowthRate; // Base for super-exponential growth
+    
+    // Add current population tracking
+    uint256 public currentPopulation;
+    
+    // Price validation window (in percentage)
+    uint256 public constant PRICE_TOLERANCE = 200; // 2% tolerance
+    
+    // Event for population changes
+    event PopulationChanged(uint256 oldPopulation, uint256 newPopulation);
+
+    // Add price checkpoint state variables
+    uint256 public C1Price; // Price at 1000 population
+    uint256 public C2Price; // Price at 2000 population
+    uint256 public C3Price; // Price at 3000 population
+    uint256 public C4Price; // Price at 4000 population
+    uint256 public C5Price; // Price at 5000 population
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -84,7 +109,10 @@ contract CharacterNFT is
     function initialize(
         uint256 _basePrice,
         uint256 _priceIncrement,
-        uint256 _nameChangePrice
+        uint256 _nameChangePrice,
+        uint256 _phase2GrowthRate,
+        uint256 _phase3GrowthRate,
+        uint256 _phase4GrowthRate
     ) public initializer {
         __ERC721_init("Mondungeons Character", "MDC");
         __Ownable_init();
@@ -92,26 +120,81 @@ contract CharacterNFT is
         __Pausable_init();
         
         basePrice = _basePrice;
+        // priceIncrement will be 1-5% of the base price
         priceIncrement = _priceIncrement;
         nameChangePrice = _nameChangePrice;
+        phase2GrowthRate = _phase2GrowthRate;
+        phase3GrowthRate = _phase3GrowthRate;
+        phase4GrowthRate = _phase4GrowthRate;
         
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(XP_MANAGER_ROLE, msg.sender);
         _grantRole(PAUSER_ROLE, msg.sender);
+        
+        _updateCheckpointPrices();
+    }
+
+    function calculateMintPrice() public view returns (uint256) {
+        uint256 population = currentPopulation;
+        
+        // Phase 1: Linear growth (0-1000)
+        if (population < PHASE1_THRESHOLD) {
+            return basePrice + (priceIncrement * population);
+        }
+        
+        // Phase 2: Stepped growth (1000-5000)
+        if (population < PHASE2_THRESHOLD) {
+            // Use pre-calculated checkpoint prices
+            if (population < 2000) return C1Price;
+            if (population < 3000) return C2Price;
+            if (population < 4000) return C3Price;
+            if (population < 5000) return C4Price;
+            return C5Price;
+        }
+        
+        // Phase 3: Exponential growth (5000+)
+        uint256 excessPopulation = population - PHASE2_THRESHOLD;
+
+        // Use C5Price as base for exponential calculation
+        uint256 expResult = 10000; // 1.0000
+        uint256 term = 10000; // 1.0000
+        uint256 exponent = (6 * excessPopulation) / 10000;
+        
+        for (uint256 i = 1; i <= 5; i++) {
+            term = (term * exponent) / (i * 10000);
+            expResult += term;
+        }
+
+        return (C5Price * expResult) / 10000;
     }
 
     function createCharacter(
         string memory name,
         Class class,
         Race race,
-        Attributes calldata initialAttributes
+        Attributes calldata initialAttributes,
+        uint256 expectedPrice  // Add expected price parameter
     ) public payable whenNotPaused returns (uint256) {
         require(!hasCharacter[msg.sender], "Already has a character");
         require(bytes(name).length > 0 && bytes(name).length <= MAX_NAME_LENGTH, "Invalid name length");
         
-        // Calculate and collect creation fee
-        uint256 mintPrice = basePrice + (priceIncrement * _tokenIdCounter);
-        require(msg.value >= mintPrice, "Insufficient payment");
+        // Calculate current mint price
+        uint256 currentPrice = calculateMintPrice();
+        
+        // Verify price is within tolerance range
+        require(
+            expectedPrice >= currentPrice * (10000 - PRICE_TOLERANCE) / 10000 &&
+            expectedPrice <= currentPrice * (10000 + PRICE_TOLERANCE) / 10000,
+            "Price changed beyond tolerance"
+        );
+        
+        require(msg.value >= currentPrice, "Insufficient payment");
+        
+        // Update population
+        unchecked {
+            currentPopulation++;
+        }
+        emit PopulationChanged(currentPopulation - 1, currentPopulation);
         
         // Validate initial attribute distribution
         require(_validateAttributes(initialAttributes, INITIAL_ATTRIBUTE_POINTS), "Invalid attribute distribution");
@@ -217,7 +300,8 @@ contract CharacterNFT is
         basePrice = _basePrice;
         priceIncrement = _priceIncrement;
         nameChangePrice = _nameChangePrice;
-        emit PriceUpdated(_basePrice, _priceIncrement);
+        
+        _updateCheckpointPrices();
     }
 
     // Validate attribute point distribution
@@ -322,5 +406,51 @@ contract CharacterNFT is
         uint256 batchSize
     ) internal virtual override whenNotPaused {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    }
+
+    // Function to update growth rate parameters
+    function updateGrowthRates(
+        uint256 _phase2GrowthRate,
+        uint256 _phase3GrowthRate,
+        uint256 _phase4GrowthRate
+    ) public onlyOwner {
+        phase2GrowthRate = _phase2GrowthRate;
+        phase3GrowthRate = _phase3GrowthRate;
+        phase4GrowthRate = _phase4GrowthRate;
+    }
+
+    function burn(uint256 tokenId) public {
+        require(ownerOf(tokenId) == msg.sender, "Only owner can burn their NFT");
+        
+        // Update population before burning
+        unchecked {
+            currentPopulation--;
+        }
+        emit PopulationChanged(currentPopulation + 1, currentPopulation);
+        
+        // Update hasCharacter mapping before burning
+        hasCharacter[msg.sender] = false;
+        
+        // Burn the token
+        _burn(tokenId);
+    }
+
+    // Optional: Add function to get current price for frontend
+    function getCurrentPrice() external view returns (uint256) {
+        uint256 price = calculateMintPrice();
+        return price;
+    }
+
+    // Add function to update checkpoint prices
+    function _updateCheckpointPrices() internal {
+        // Calculate C1 (price at 1000)
+        C1Price = basePrice + (priceIncrement * PHASE1_THRESHOLD);
+        
+        // Calculate subsequent checkpoints using 1.6 multiplier
+        uint256 multiplier = 160;
+        C2Price = (C1Price * multiplier) / 100;
+        C3Price = (C2Price * multiplier) / 100;
+        C4Price = (C3Price * multiplier) / 100;
+        C5Price = (C4Price * multiplier) / 100;
     }
 }
