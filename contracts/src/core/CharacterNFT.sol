@@ -79,12 +79,7 @@ contract CharacterNFT is
     uint256 public constant PHASE1_THRESHOLD = 1000;
     uint256 public constant PHASE2_THRESHOLD = 5000;
     uint256 public constant PHASE3_THRESHOLD = 10000;
-    
-    // Growth rate parameters
-    uint256 public phase2GrowthRate; // Represented as percentage * 100 (e.g., 1000 = 10%)
-    uint256 public phase3GrowthRate; // Base for exponential growth
-    uint256 public phase4GrowthRate; // Base for super-exponential growth
-    
+        
     // Add current population tracking
     uint256 public currentPopulation;
     
@@ -109,10 +104,7 @@ contract CharacterNFT is
     function initialize(
         uint256 _basePrice,
         uint256 _priceIncrement,
-        uint256 _nameChangePrice,
-        uint256 _phase2GrowthRate,
-        uint256 _phase3GrowthRate,
-        uint256 _phase4GrowthRate
+        uint256 _nameChangePrice
     ) public initializer {
         __ERC721_init("Mondungeons Character", "MDC");
         __Ownable_init();
@@ -123,9 +115,6 @@ contract CharacterNFT is
         // priceIncrement will be 1-5% of the base price
         priceIncrement = _priceIncrement;
         nameChangePrice = _nameChangePrice;
-        phase2GrowthRate = _phase2GrowthRate;
-        phase3GrowthRate = _phase3GrowthRate;
-        phase4GrowthRate = _phase4GrowthRate;
         
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(XP_MANAGER_ROLE, msg.sender);
@@ -406,17 +395,6 @@ contract CharacterNFT is
         uint256 batchSize
     ) internal virtual override whenNotPaused {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
-
-    // Function to update growth rate parameters
-    function updateGrowthRates(
-        uint256 _phase2GrowthRate,
-        uint256 _phase3GrowthRate,
-        uint256 _phase4GrowthRate
-    ) public onlyOwner {
-        phase2GrowthRate = _phase2GrowthRate;
-        phase3GrowthRate = _phase3GrowthRate;
-        phase4GrowthRate = _phase4GrowthRate;
     }
 
     function burn(uint256 tokenId) public {

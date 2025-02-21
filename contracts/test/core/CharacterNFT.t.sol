@@ -22,10 +22,14 @@ contract CharacterNFTTest is Test {
         
         // Deploy contract
         nft = new CharacterNFT();
-        nft.initialize(BASE_PRICE, PRICE_INCREMENT, NAME_CHANGE_PRICE);
+        nft.initialize(
+            BASE_PRICE,
+            PRICE_INCREMENT,
+            NAME_CHANGE_PRICE
+        );
         
         // Setup test accounts
-        vm.deal(player, 10 ether);
+        vm.deal(player, 100 ether);
     }
 
     function test_Initialization() public {
@@ -174,5 +178,16 @@ contract CharacterNFTTest is Test {
             CharacterNFT.Race.Elf,
             attrs
         );
+    }
+
+    function test_CheckpointPrices() public {
+        // Test that checkpoint prices follow the 1.6x multiplier pattern
+        uint256 c1Price = BASE_PRICE + (PRICE_INCREMENT * 1000); // Price at 1000 population
+        
+        assertEq(nft.C1Price(), c1Price);
+        assertEq(nft.C2Price(), (c1Price * 160) / 100);
+        assertEq(nft.C3Price(), (nft.C2Price() * 160) / 100);
+        assertEq(nft.C4Price(), (nft.C3Price() * 160) / 100);
+        assertEq(nft.C5Price(), (nft.C4Price() * 160) / 100);
     }
 } 
