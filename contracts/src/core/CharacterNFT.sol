@@ -96,6 +96,9 @@ contract CharacterNFT is
     uint256 public C4Price; // Price at 4000 population
     uint256 public C5Price; // Price at 5000 population
 
+    // Base URI for tokenURI function
+    string private _baseTokenURI;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -430,5 +433,57 @@ contract CharacterNFT is
         C3Price = (C2Price * multiplier) / 100;
         C4Price = (C3Price * multiplier) / 100;
         C5Price = (C4Price * multiplier) / 100;
+    }
+
+    function toString(uint256 value) internal pure returns (string memory) {
+        unchecked {
+            uint256 length = Math.log10(value) + 1;
+            string memory buffer = new string(length);
+            uint256 ptr;
+            assembly ("memory-safe") {
+                ptr := add(buffer, add(32, length))
+            }
+            while (true) {
+                ptr--;
+                assembly ("memory-safe") {
+                    mstore8(ptr, byte(mod(value, 10), HEX_DIGITS))
+                }
+                value /= 10;
+                if (value == 0) break;
+            }
+            return buffer;
+        }
+    }
+
+    // Override tokenURI function to include character data in the URI
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "URI query for nonexistent token");
+        
+        Character memory character = characters[tokenId];
+        
+        // Convert enum values to integers
+        uint8 classId = uint8(character.class);
+        uint8 raceId = uint8(character.race);
+        
+        // Encode character data in the URI
+        return string(abi.encodePacked(
+            _baseTokenURI,
+            "?tokenId=", toString(tokenId),
+            "&name=", character.name,
+            "&class=", toString(classId),
+            "&race=", toString(raceId),
+            "&level=", toString(character.level),
+            "&str=", toString(character.attributes.strength),
+            "&dex=", toString(character.attributes.dexterity),
+            "&con=", toString(character.attributes.constitution),
+            "&int=", toString(character.attributes.intelligence),
+            "&wis=", toString(character.attributes.wisdom),
+            "&cha=", toString(character.attributes.charisma)
+        ));
+    }
+    
+    // Set base URI (only owner)
+    function setBaseURI(string memory baseURI) public onlyOwner {
+        _baseTokenURI = baseURI;
     }
 }
