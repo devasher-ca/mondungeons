@@ -2,84 +2,15 @@
 
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import {
-  Sword,
-  Crown,
-  Trophy,
-  Users,
-  Palette,
-  UserCircle2,
-  Settings,
-  Plus,
-  Coins,
-  Gem,
-} from 'lucide-react'
+import { UserCircle2, Settings, Coins } from 'lucide-react'
+import TopNavigation from './components/TopNavigation'
 
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
       <div className="relative z-10">
         {/* Top Navigation Bar */}
-        <nav className="border-b border-blue-900/30 bg-blue-950/50 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold">
-                  2
-                </div>
-                <span className="font-pixel">Guest2748</span>
-                <div className="text-xs bg-yellow-500/20 px-2 py-0.5 rounded">
-                  10/50
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-6">
-                <Button variant="ghost" className="flex items-center space-x-1">
-                  <Crown className="w-4 h-4" />
-                  <span>Leaders</span>
-                </Button>
-                <Button variant="ghost" className="flex items-center space-x-1">
-                  <Trophy className="w-4 h-4" />
-                  <span>XP Goals</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-1 bg-blue-600 text-white"
-                >
-                  <Sword className="w-4 h-4" />
-                  <span>Battle</span>
-                </Button>
-                <Button variant="ghost" className="flex items-center space-x-1">
-                  <Palette className="w-4 h-4" />
-                  <span>Skins</span>
-                </Button>
-                <Button variant="ghost" className="flex items-center space-x-1">
-                  <Users className="w-4 h-4" />
-                  <span>Friends</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center bg-yellow-900/50 rounded-full px-3 py-1">
-                  <Coins className="w-4 h-4 text-yellow-500 mr-1" />
-                  <span className="font-pixel text-yellow-500">500</span>
-                  <Button variant="ghost" className="h-6 w-6 p-0 ml-1">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center bg-blue-900/50 rounded-full px-3 py-1">
-                  <Gem className="w-4 h-4 text-blue-400 mr-1" />
-                  <span className="font-pixel text-blue-400">50</span>
-                  <Button variant="ghost" className="h-6 w-6 p-0 ml-1">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <TopNavigation />
 
         {/* Season Progress */}
         <div className="max-w-4xl mx-auto mt-8 px-4">

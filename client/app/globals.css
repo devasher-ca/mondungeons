@@ -60,3 +60,109 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.clip-path-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Add a small trophy icon for the XP bonus */
+.bonus-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bonus-icon::before {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm7 3a2 2 0 0 0-2 2v1H9v2h1v1a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1h1v-2h-1V8a2 2 0 0 0-2-2h-2z'/%3E%3C/svg%3E");
+  background-size: contain;
+}
+
+/* Battle Tab Active Style */
+.battle-tab-active {
+  position: relative;
+  width: 100px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #7f1d1d;
+  transform: translateY(10px);
+  z-index: 10;
+}
+
+.battle-tab-active::before,
+.battle-tab-active::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.battle-tab-active::before {
+  top: -20px;
+  left: 0;
+  border-width: 0 50px 20px 50px;
+  border-color: transparent transparent #7f1d1d transparent;
+}
+
+.battle-tab-active::after {
+  bottom: -20px;
+  left: 0;
+  border-width: 20px 50px 0 50px;
+  border-color: #7f1d1d transparent transparent transparent;
+}
+
+/* Navigation tab styles */
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-tab-active {
+  position: relative;
+  width: 100px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #7f1d1d;
+  transform: translateY(10px);
+  z-index: 10;
+}
+
+.nav-tab-active::before,
+.nav-tab-active::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.nav-tab-active::before {
+  top: -20px;
+  left: 0;
+  border-width: 0 50px 20px 50px;
+  border-color: transparent transparent #7f1d1d transparent;
+}
+
+.nav-tab-active::after {
+  bottom: -20px;
+  left: 0;
+  border-width: 20px 50px 0 50px;
+  border-color: #7f1d1d transparent transparent transparent;
+}
