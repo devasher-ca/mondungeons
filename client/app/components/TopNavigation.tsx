@@ -31,7 +31,7 @@ export default function TopNavigation() {
   ]
 
   return (
-    <nav className="border-b border-blue-900/50 bg-slate-900/90 backdrop-blur-sm">
+    <nav className="border-b border-blue-900/50 bg-slate-900/30 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative">
         {/* Left side - Level and XP */}
         <div className="flex items-center">
@@ -40,7 +40,7 @@ export default function TopNavigation() {
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-red-800 border-4 border-yellow-500 flex items-center justify-center text-2xl font-bold shadow-lg z-20 transform translate-y-4">
               <span className="font-pixel text-white">2</span>
             </div>
-            <div className="absolute -top-1 -left-1 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+            <div className="absolute -top-1 -left-1 w-4 h-4 bg-yellow-400 rounded-full animate-pulse translate-y-4"></div>
           </div>
 
           {/* Player Name and XP Bar */}

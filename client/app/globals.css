@@ -15,7 +15,7 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgba(10, 15, 30, 0.7) url('/backgroud.jpeg');
+  background: rgba(10, 15, 30, 0.7) url('/backgroud.gif');
   /* background-blend-mode: darken; */
   background-size: cover;
   background-position: center;

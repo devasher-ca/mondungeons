@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { UserCircle2, Settings, Coins } from 'lucide-react'
+import { Settings, Coins } from 'lucide-react'
 import TopNavigation from './components/TopNavigation'
 
 export default function Home() {
@@ -26,7 +26,7 @@ export default function Home() {
 
           <Progress value={33} className="h-4 bg-blue-900/50" />
 
-          <div className="mt-4 bg-blue-900/20 rounded-lg p-4">
+          <div className="mt-4 bg-red-900/20 rounded-lg p-4">
             <div className="flex justify-between items-center">
               <div className="space-y-2">
                 <div className="font-pixel text-xl text-yellow-500">
@@ -81,9 +81,9 @@ export default function Home() {
         <div className="fixed bottom-4 left-4">
           <Button
             variant="outline"
-            className="bg-blue-900/50 border-blue-400/30"
+            className="font-pixel bg-stone-800 border-2 border-amber-700 text-amber-400 hover:bg-stone-700 hover:border-amber-500 shadow-md transition-all duration-200 px-4 py-2 text-xs"
           >
-            <Settings className="w-4 h-4 mr-2" />
+            <Settings className="w-4 h-4 mr-2 text-amber-400" />
             SETTINGS
           </Button>
         </div>
@@ -91,12 +91,13 @@ export default function Home() {
         <div className="fixed bottom-4 right-4 flex space-x-2">
           <Button
             variant="outline"
-            className="bg-purple-900/50 border-purple-400/30"
+            className="font-pixel bg-red-900 border-2 border-red-700 text-amber-300 hover:bg-red-800 hover:border-red-600 shadow-md transition-all duration-200 px-4 py-2 text-xs"
           >
-            <UserCircle2 className="w-4 h-4 mr-2" />
             LOG IN
           </Button>
-          <Button className="bg-purple-600 hover:bg-purple-700">SIGN UP</Button>
+          <Button className="font-pixel bg-red-900 border-2 border-red-700 text-amber-300 hover:bg-red-800 hover:border-red-600 shadow-md transition-all duration-200 px-4 py-2 text-xs">
+            SIGN UP
+          </Button>
         </div>
       </div>
     </div>
