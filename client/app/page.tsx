@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Settings, Coins } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import TopNavigation from './components/TopNavigation'
 import CharacterCreation from './components/CharacterCreation'
+import { ConnectKitButton } from 'connectkit'
 
 export default function Home() {
   const [showCharacterCreation, setShowCharacterCreation] = useState(true)
@@ -33,6 +33,7 @@ export default function Home() {
         </div>
 
         <div className="fixed bottom-4 right-4 flex space-x-2">
+          <ConnectKitButton />
           <Button
             variant="outline"
             className="font-pixel bg-red-900 border-2 border-red-700 text-amber-300 hover:bg-red-800 hover:border-red-600 shadow-md transition-all duration-200 px-4 py-2 text-xs"
