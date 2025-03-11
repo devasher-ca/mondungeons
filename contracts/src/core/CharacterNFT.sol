@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 
 contract CharacterNFT is 
@@ -13,7 +14,8 @@ contract CharacterNFT is
     ERC721Upgradeable, 
     OwnableUpgradeable,
     AccessControlUpgradeable,
-    PausableUpgradeable
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     // Character creation fee related
     uint256 public basePrice;
@@ -27,8 +29,9 @@ contract CharacterNFT is
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     
     // Attribute points related
-    uint8 public constant INITIAL_ATTRIBUTE_POINTS = 27; // Initial allocatable points
-    uint8 public constant POINTS_PER_LEVEL = 2; // Points gained per level
+    uint8 public constant BASE_ATTRIBUTE_VALUE = 8;
+    uint8 public constant INITIAL_ATTRIBUTE_POINTS = 27;
+    uint8 public constant POINTS_PER_LEVEL = 2;
     
     // Record unassigned attribute points
     mapping(uint256 => uint8) public unassignedPoints;
@@ -82,9 +85,6 @@ contract CharacterNFT is
         
     // Add current population tracking
     uint256 public currentPopulation;
-    
-    // Price validation window (in percentage)
-    uint256 public constant PRICE_TOLERANCE = 200; // 2% tolerance
     
     // Event for population changes
     event PopulationChanged(uint256 oldPopulation, uint256 newPopulation);
@@ -147,49 +147,48 @@ contract CharacterNFT is
         // Phase 3: Exponential growth (5000+)
         uint256 excessPopulation = population - PHASE2_THRESHOLD;
 
-        // Use C5Price as base for exponential calculation
-        uint256 expResult = 10000; // 1.0000
-        uint256 term = 10000; // 1.0000
-        uint256 exponent = (6 * excessPopulation) / 10000;
-        
+        uint256 scaleFactor = 1e18;
+        uint256 exponent = (6 * excessPopulation * scaleFactor) / 10000; 
+
+        uint256 expResult = scaleFactor; // 1.0 * 10^18
+        uint256 term = scaleFactor; 
+
         for (uint256 i = 1; i <= 5; i++) {
-            term = (term * exponent) / (i * 10000);
+            term = (term * exponent) / (i * scaleFactor);
             expResult += term;
         }
 
-        return (C5Price * expResult) / 10000;
+        return (C5Price * expResult) / scaleFactor;
     }
 
     function createCharacter(
         string memory name,
         Class class,
         Race race,
-        Attributes calldata initialAttributes,
-        uint256 expectedPrice  // Add expected price parameter
-    ) public payable whenNotPaused returns (uint256) {
+        Attributes calldata attributeDistribution
+    ) public payable whenNotPaused nonReentrant returns (uint256) {
         require(!hasCharacter[msg.sender], "Already has a character");
         require(bytes(name).length > 0 && bytes(name).length <= MAX_NAME_LENGTH, "Invalid name length");
         
-        // Calculate current mint price
         uint256 currentPrice = calculateMintPrice();
-        
-        // Verify price is within tolerance range
-        require(
-            expectedPrice >= currentPrice * (10000 - PRICE_TOLERANCE) / 10000 &&
-            expectedPrice <= currentPrice * (10000 + PRICE_TOLERANCE) / 10000,
-            "Price changed beyond tolerance"
-        );
         
         require(msg.value >= currentPrice, "Insufficient payment");
         
-        // Update population
+        uint256 refund = msg.value - currentPrice;
+        
         unchecked {
             currentPopulation++;
         }
         emit PopulationChanged(currentPopulation - 1, currentPopulation);
         
-        // Validate initial attribute distribution
-        require(_validateAttributes(initialAttributes, INITIAL_ATTRIBUTE_POINTS), "Invalid attribute distribution");
+        require(_validateAttributeDistribution(attributeDistribution, INITIAL_ATTRIBUTE_POINTS), 
+            "Invalid attribute distribution");
+        
+        Attributes memory finalAttributes = _calculateFinalAttributes(
+            attributeDistribution, 
+            class, 
+            race
+        );
         
         uint256 tokenId = _tokenIdCounter++;
         
@@ -199,13 +198,29 @@ contract CharacterNFT is
             race: race,
             xp: 0,
             level: 1,
-            attributes: initialAttributes,
+            attributes: finalAttributes,
             createdAt: block.timestamp
         });
+
+        uint8 usedPoints = attributeDistribution.strength + 
+                          attributeDistribution.dexterity + 
+                          attributeDistribution.constitution +
+                          attributeDistribution.intelligence + 
+                          attributeDistribution.wisdom + 
+                          attributeDistribution.charisma;
+        
+        if (usedPoints < INITIAL_ATTRIBUTE_POINTS) {
+            unassignedPoints[tokenId] = INITIAL_ATTRIBUTE_POINTS - usedPoints;
+        }
 
         hasCharacter[msg.sender] = true;
         _safeMint(msg.sender, tokenId);
         emit CharacterCreated(tokenId, name, class, race);
+        
+        if (refund > 0) {
+            (bool success, ) = msg.sender.call{value: refund}("");
+            require(success, "Refund failed");
+        }
         
         return tokenId;
     }
@@ -252,20 +267,15 @@ contract CharacterNFT is
         require(_exists(tokenId), "Character does not exist");
         
         Character storage character = characters[tokenId];
-        uint8 oldLevel = character.level;
         character.xp += amount;
-        
-        // Check if the character can level up
-        uint8 newLevel = _calculateLevel(character.xp);
-        if (newLevel > oldLevel) {
-            // Subtract the required experience for the level up
-            character.xp -= _getRequiredXP(oldLevel);
-            character.level = newLevel;
-            
-            // Add allocatable points
-            unassignedPoints[tokenId] += (newLevel - oldLevel) * POINTS_PER_LEVEL;
-            
-            emit LevelUp(tokenId, newLevel);
+
+        uint256 requiredXPForNextLevel = _getRequiredXPForNextLevel(character.level);
+        while (character.xp >= requiredXPForNextLevel) {
+            character.xp -= requiredXPForNextLevel;
+            character.level++;
+            unassignedPoints[tokenId] += POINTS_PER_LEVEL;
+            emit LevelUp(tokenId, character.level);
+            requiredXPForNextLevel = _getRequiredXPForNextLevel(character.level);
         }
         
         emit ExperienceGained(tokenId, amount);
@@ -296,17 +306,71 @@ contract CharacterNFT is
         _updateCheckpointPrices();
     }
 
-    // Validate attribute point distribution
-    function _validateAttributes(Attributes memory attrs, uint8 maxPoints) private pure returns (bool) {
+    // Validate attribute distribution
+    function _validateAttributeDistribution(Attributes memory attrs, uint8 maxPoints) private pure returns (bool) {
         uint8 total = attrs.strength + attrs.dexterity + attrs.constitution +
                      attrs.intelligence + attrs.wisdom + attrs.charisma;
         return total <= maxPoints;
     }
 
-    // Calculate required experience for level up
-    function _getRequiredXP(uint8 currentLevel) private pure returns (uint256) {
-        // Simple level experience calculation formula, can be adjusted as needed
-        return currentLevel * 1000;
+    // Calculate final attributes
+    function _calculateFinalAttributes(
+        Attributes memory playerDistribution,
+        Class class,
+        Race race
+    ) private pure returns (Attributes memory) {
+        // Start with base attributes
+        Attributes memory finalAttrs;
+        finalAttrs.strength = BASE_ATTRIBUTE_VALUE;
+        finalAttrs.dexterity = BASE_ATTRIBUTE_VALUE;
+        finalAttrs.constitution = BASE_ATTRIBUTE_VALUE;
+        finalAttrs.intelligence = BASE_ATTRIBUTE_VALUE;
+        finalAttrs.wisdom = BASE_ATTRIBUTE_VALUE;
+        finalAttrs.charisma = BASE_ATTRIBUTE_VALUE;
+        
+        // Add race bonuses
+        if (race == Race.Human) {
+            finalAttrs.strength += 1;
+            finalAttrs.dexterity += 1;
+            finalAttrs.constitution += 1;
+            finalAttrs.intelligence += 1;
+            finalAttrs.wisdom += 1;
+            finalAttrs.charisma += 1;
+        } else if (race == Race.Elf) {
+            finalAttrs.dexterity += 2;
+            finalAttrs.intelligence += 2;
+            finalAttrs.wisdom += 1;
+            finalAttrs.charisma += 1;
+        } else if (race == Race.Dwarf) {
+            finalAttrs.strength += 2;
+            finalAttrs.constitution += 3;
+            finalAttrs.wisdom += 1;
+        }
+        
+        // Add class bonuses
+        if (class == Class.Warrior) {
+            finalAttrs.strength += 3;
+            finalAttrs.constitution += 2;
+            finalAttrs.dexterity += 1;
+        } else if (class == Class.Mage) {
+            finalAttrs.intelligence += 3;
+            finalAttrs.wisdom += 2;
+            finalAttrs.charisma += 1;
+        } else if (class == Class.Rogue) {
+            finalAttrs.dexterity += 3;
+            finalAttrs.charisma += 2;
+            finalAttrs.intelligence += 1;
+        }
+        
+        // Add player-allocated points
+        finalAttrs.strength += playerDistribution.strength;
+        finalAttrs.dexterity += playerDistribution.dexterity;
+        finalAttrs.constitution += playerDistribution.constitution;
+        finalAttrs.intelligence += playerDistribution.intelligence;
+        finalAttrs.wisdom += playerDistribution.wisdom;
+        finalAttrs.charisma += playerDistribution.charisma;
+        
+        return finalAttrs;
     }
 
     // Get character information
@@ -315,72 +379,10 @@ contract CharacterNFT is
         return characters[tokenId];
     }
 
-    // Private function: generate initial attributes
-    function _generateInitialAttributes(Class class, Race race) private pure returns (Attributes memory) {
-        // Here implement the initial attribute distribution logic based on class and race
-        // This is an example implementation, you can adjust the game balance as needed
-        Attributes memory attrs;
-        
-        // Base attributes
-        attrs.strength = 10;
-        attrs.dexterity = 10;
-        attrs.constitution = 10;
-        attrs.intelligence = 10;
-        attrs.wisdom = 10;
-        attrs.charisma = 10;
-
-        // Adjust based on class
-        if (class == Class.Warrior) {
-            attrs.strength += 2;
-            attrs.constitution += 1;
-        } else if (class == Class.Mage) {
-            attrs.intelligence += 2;
-            attrs.wisdom += 1;
-        } else if (class == Class.Rogue) {
-            attrs.dexterity += 2;
-            attrs.charisma += 1;
-        }
-
-        // Adjust based on race
-        if (race == Race.Human) {
-            // Human all attributes +1
-            attrs.strength += 1;
-            attrs.dexterity += 1;
-            attrs.constitution += 1;
-            attrs.intelligence += 1;
-            attrs.wisdom += 1;
-            attrs.charisma += 1;
-        } else if (race == Race.Elf) {
-            attrs.dexterity += 2;
-            attrs.intelligence += 1;
-        } else if (race == Race.Dwarf) {
-            attrs.constitution += 2;
-            attrs.strength += 1;
-        }
-
-        return attrs;
-    }
-
-    // Private function: check and process level up
-    function _checkAndProcessLevelUp(uint256 tokenId) private {
-        Character storage character = characters[tokenId];
-        uint8 newLevel = _calculateLevel(character.xp);
-        
-        if (newLevel > character.level) {
-            character.level = newLevel;
-            // Here you can add attribute improvement logic during level up
-            emit LevelUp(tokenId, newLevel);
-        }
-    }
-
-    // Private function: calculate level
-    function _calculateLevel(uint256 xp) private pure returns (uint8) {
-        // Simple level calculation formula, can be adjusted as needed
-        if (xp < 300) return 1;
-        if (xp < 900) return 2;
-        if (xp < 2700) return 3;
-        // ... continue adding more levels
-        return 20; // Highest level limit
+    // Calculate required experience for level up
+    function _getRequiredXPForNextLevel(uint8 currentLevel) private pure returns (uint256) {
+        uint256 baseXP = 100;
+        return baseXP * currentLevel * (currentLevel + 1) / 2;
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {
