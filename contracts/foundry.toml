@@ -10,6 +10,16 @@ remappings = [
     "forge-std/=lib/forge-std/src/"
 ]
 
+sender = "0x24962D83f3eB5F18f159A24e4354078780314729"
+private_key = "${PRIVATE_KEY}"
+
+# Default network
+default_network = "monad"
+
+[rpc_endpoints]
+monad = "https://testnet-rpc.monad.xyz"
+
+
 # Monad Configuration
 eth-rpc-url="https://testnet-rpc.monad.xyz"
 chain_id = "10143"
