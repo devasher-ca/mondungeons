@@ -7,7 +7,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract CharacterNFT is 
     Initializable, 
@@ -15,7 +16,8 @@ contract CharacterNFT is
     OwnableUpgradeable,
     AccessControlUpgradeable,
     PausableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
 {
     // Override supportsInterface to resolve the conflict between ERC721Upgradeable and AccessControlUpgradeable
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, AccessControlUpgradeable) returns (bool) {
@@ -45,6 +47,29 @@ contract CharacterNFT is
     // Record if an address has created a character
     mapping(address => bool) public hasCharacter;
 
+    // State variables
+    mapping(uint256 => Character) private characters;
+    uint256 private _tokenIdCounter;
+    uint256 public constant MAX_NAME_LENGTH = 32;
+    
+    // Population thresholds
+    uint256 public constant PHASE1_THRESHOLD = 1000;
+    uint256 public constant PHASE2_THRESHOLD = 5000;
+    uint256 public constant PHASE3_THRESHOLD = 10000;
+        
+    // Add current population tracking
+    uint256 public currentPopulation;
+    
+    // Add price checkpoint state variables
+    uint256 public C1Price; // Price at 1000 population
+    uint256 public C2Price; // Price at 2000 population
+    uint256 public C3Price; // Price at 3000 population
+    uint256 public C4Price; // Price at 4000 population
+    uint256 public C5Price; // Price at 5000 population
+
+    // Base URI for tokenURI function
+    string private _baseTokenURI;
+
     // Enum definitions
     enum Class { Warrior, Mage, Rogue }
     enum Race { Human, Elf, Dwarf }
@@ -70,11 +95,13 @@ contract CharacterNFT is
         uint256 createdAt;
     }
 
-    // State variables
-    mapping(uint256 => Character) private characters;
-    uint256 private _tokenIdCounter;
-    uint256 public constant MAX_NAME_LENGTH = 32;
-    
+    uint256[50] private __gap; // Storage gap for future upgrades
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // Events
     event CharacterCreated(uint256 indexed tokenId, string name, Class class, Race race);
     event LevelUp(uint256 indexed tokenId, uint8 newLevel);
@@ -83,31 +110,12 @@ contract CharacterNFT is
     event AttributePointsAssigned(uint256 indexed tokenId, uint8 pointsUsed);
     event XPManagerAdded(address manager);
     event XPManagerRemoved(address manager);
-
-    // Population thresholds
-    uint256 public constant PHASE1_THRESHOLD = 1000;
-    uint256 public constant PHASE2_THRESHOLD = 5000;
-    uint256 public constant PHASE3_THRESHOLD = 10000;
-        
-    // Add current population tracking
-    uint256 public currentPopulation;
-    
-    // Event for population changes
     event PopulationChanged(uint256 oldPopulation, uint256 newPopulation);
+    event UpgradeAuthorized(address indexed newImplementation, address indexed authorizer);
 
-    // Add price checkpoint state variables
-    uint256 public C1Price; // Price at 1000 population
-    uint256 public C2Price; // Price at 2000 population
-    uint256 public C3Price; // Price at 3000 population
-    uint256 public C4Price; // Price at 4000 population
-    uint256 public C5Price; // Price at 5000 population
 
-    // Base URI for tokenURI function
-    string private _baseTokenURI;
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+        emit UpgradeAuthorized(newImplementation, msg.sender);
     }
 
     function initialize(
@@ -435,60 +443,6 @@ contract CharacterNFT is
         C5Price = (C4Price * multiplier) / 100;
     }
 
-    function log10(uint256 value) internal pure returns (uint256) {
-        uint256 result = 0;
-        unchecked {
-            if (value >= 10 ** 64) {
-                value /= 10 ** 64;
-                result += 64;
-            }
-            if (value >= 10 ** 32) {
-                value /= 10 ** 32;
-                result += 32;
-            }
-            if (value >= 10 ** 16) {
-                value /= 10 ** 16;
-                result += 16;
-            }
-            if (value >= 10 ** 8) {
-                value /= 10 ** 8;
-                result += 8;
-            }
-            if (value >= 10 ** 4) {
-                value /= 10 ** 4;
-                result += 4;
-            }
-            if (value >= 10 ** 2) {
-                value /= 10 ** 2;
-                result += 2;
-            }
-            if (value >= 10 ** 1) {
-                result += 1;
-            }
-        }
-        return result;
-    }
-
-    function toString(uint256 value) internal pure returns (string memory) {
-        unchecked {
-            uint256 length = log10(value) + 1;
-            string memory buffer = new string(length);
-            uint256 ptr;
-            assembly ("memory-safe") {
-                ptr := add(buffer, add(32, length))
-            }
-            while (true) {
-                ptr--;
-                assembly ("memory-safe") {
-                    mstore8(ptr, byte(mod(value, 10), HEX_DIGITS))
-                }
-                value /= 10;
-                if (value == 0) break;
-            }
-            return buffer;
-        }
-    }
-
     // Override tokenURI function to include character data in the URI
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         _requireOwned(tokenId);
@@ -502,17 +456,17 @@ contract CharacterNFT is
         // Encode character data in the URI
         return string(abi.encodePacked(
             _baseTokenURI,
-            "?tokenId=", toString(tokenId),
+            "?tokenId=", Strings.toString(tokenId),
             "&name=", character.name,
-            "&class=", toString(classId),
-            "&race=", toString(raceId),
-            "&level=", toString(character.level),
-            "&str=", toString(character.attributes.strength),
-            "&dex=", toString(character.attributes.dexterity),
-            "&con=", toString(character.attributes.constitution),
-            "&int=", toString(character.attributes.intelligence),
-            "&wis=", toString(character.attributes.wisdom),
-            "&cha=", toString(character.attributes.charisma)
+            "&class=", Strings.toString(classId),
+            "&race=", Strings.toString(raceId),
+            "&level=", Strings.toString(character.level),
+            "&str=", Strings.toString(character.attributes.strength),
+            "&dex=", Strings.toString(character.attributes.dexterity),
+            "&con=", Strings.toString(character.attributes.constitution),
+            "&int=", Strings.toString(character.attributes.intelligence),
+            "&wis=", Strings.toString(character.attributes.wisdom),
+            "&cha=", Strings.toString(character.attributes.charisma)
         ));
     }
     
