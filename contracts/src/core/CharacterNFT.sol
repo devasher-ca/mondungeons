@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 
 contract CharacterNFT is 
@@ -17,6 +17,12 @@ contract CharacterNFT is
     PausableUpgradeable,
     ReentrancyGuardUpgradeable
 {
+    // Override supportsInterface to resolve the conflict between ERC721Upgradeable and AccessControlUpgradeable
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, AccessControlUpgradeable) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+    
+    bytes16 private constant HEX_DIGITS = "0123456789abcdef";
     // Character creation fee related
     uint256 public basePrice;
     uint256 public priceIncrement;
@@ -110,7 +116,7 @@ contract CharacterNFT is
         uint256 _nameChangePrice
     ) public initializer {
         __ERC721_init("Mondungeons Character", "MDC");
-        __Ownable_init();
+        __Ownable_init(msg.sender);
         __AccessControl_init();
         __Pausable_init();
         
@@ -264,7 +270,7 @@ contract CharacterNFT is
 
     // Increase experience (only addresses with the XP_MANAGER_ROLE can call)
     function gainExperience(uint256 tokenId, uint256 amount) public onlyRole(XP_MANAGER_ROLE) {
-        require(_exists(tokenId), "Character does not exist");
+        _requireOwned(tokenId);
         
         Character storage character = characters[tokenId];
         character.xp += amount;
@@ -375,7 +381,8 @@ contract CharacterNFT is
 
     // Get character information
     function getCharacter(uint256 tokenId) public view returns (Character memory) {
-        require(_exists(tokenId), "Character does not exist");
+        _requireOwned(tokenId);
+
         return characters[tokenId];
     }
 
@@ -391,15 +398,6 @@ contract CharacterNFT is
 
     function unpause() public onlyRole(PAUSER_ROLE) {
         _unpause();
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal virtual override whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function burn(uint256 tokenId) public {
@@ -437,9 +435,43 @@ contract CharacterNFT is
         C5Price = (C4Price * multiplier) / 100;
     }
 
+    function log10(uint256 value) internal pure returns (uint256) {
+        uint256 result = 0;
+        unchecked {
+            if (value >= 10 ** 64) {
+                value /= 10 ** 64;
+                result += 64;
+            }
+            if (value >= 10 ** 32) {
+                value /= 10 ** 32;
+                result += 32;
+            }
+            if (value >= 10 ** 16) {
+                value /= 10 ** 16;
+                result += 16;
+            }
+            if (value >= 10 ** 8) {
+                value /= 10 ** 8;
+                result += 8;
+            }
+            if (value >= 10 ** 4) {
+                value /= 10 ** 4;
+                result += 4;
+            }
+            if (value >= 10 ** 2) {
+                value /= 10 ** 2;
+                result += 2;
+            }
+            if (value >= 10 ** 1) {
+                result += 1;
+            }
+        }
+        return result;
+    }
+
     function toString(uint256 value) internal pure returns (string memory) {
         unchecked {
-            uint256 length = Math.log10(value) + 1;
+            uint256 length = log10(value) + 1;
             string memory buffer = new string(length);
             uint256 ptr;
             assembly ("memory-safe") {
@@ -459,7 +491,7 @@ contract CharacterNFT is
 
     // Override tokenURI function to include character data in the URI
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "URI query for nonexistent token");
+        _requireOwned(tokenId);
         
         Character memory character = characters[tokenId];
         

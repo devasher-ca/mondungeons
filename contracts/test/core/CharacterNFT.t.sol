@@ -32,7 +32,7 @@ contract CharacterNFTTest is Test {
         vm.deal(player, 100 ether);
     }
 
-    function test_Initialization() public {
+    function test_Initialization() public view {
         assertEq(nft.basePrice(), BASE_PRICE);
         assertEq(nft.priceIncrement(), PRICE_INCREMENT);
         assertEq(nft.nameChangePrice(), NAME_CHANGE_PRICE);
@@ -180,7 +180,7 @@ contract CharacterNFTTest is Test {
         );
     }
 
-    function test_CheckpointPrices() public {
+    function test_CheckpointPrices() public view {
         // Test that checkpoint prices follow the 1.6x multiplier pattern
         uint256 c1Price = BASE_PRICE + (PRICE_INCREMENT * 1000); // Price at 1000 population
         
