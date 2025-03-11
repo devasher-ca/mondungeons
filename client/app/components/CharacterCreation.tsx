@@ -1,28 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import '../styles/character-creation.css'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react'
-
-// Character races and classes
-const RACES = ['Human', 'Elf', 'Dwarf']
-const CLASSES = ['Warrior', 'Mage', 'Rogue']
-
-// Attributes with descriptions
-const ATTRIBUTES = [
-  { name: 'Strength', abbr: 'STR', desc: 'Physical power and melee damage' },
-  {
-    name: 'Dexterity',
-    abbr: 'DEX',
-    desc: 'Agility, reflexes, and ranged attacks',
-  },
-  { name: 'Constitution', abbr: 'CON', desc: 'Health, stamina, and vitality' },
-  { name: 'Intelligence', abbr: 'INT', desc: 'Magical ability and knowledge' },
-  { name: 'Wisdom', abbr: 'WIS', desc: 'Perception and insight' },
-  { name: 'Charisma', abbr: 'CHA', desc: 'Social influence and leadership' },
-]
+import { useCreateCharacter } from '@/hooks/use-create-character'
+import {
+  RACES,
+  CLASSES,
+  ATTRIBUTES,
+  BASE_ATTRIBUTE_VALUE,
+} from '@/lib/constants'
+import { useToast } from '@/hooks/use-toast'
 
 export default function CharacterCreation() {
   // Character state
@@ -31,17 +21,17 @@ export default function CharacterCreation() {
     race: RACES[0],
     class: CLASSES[0],
     attributes: {
-      strength: 10,
-      dexterity: 10,
-      constitution: 10,
-      intelligence: 10,
-      wisdom: 10,
-      charisma: 10,
+      strength: BASE_ATTRIBUTE_VALUE,
+      dexterity: BASE_ATTRIBUTE_VALUE,
+      constitution: BASE_ATTRIBUTE_VALUE,
+      intelligence: BASE_ATTRIBUTE_VALUE,
+      wisdom: BASE_ATTRIBUTE_VALUE,
+      charisma: BASE_ATTRIBUTE_VALUE,
     },
   })
 
   // Points allocation
-  const [pointsRemaining, setPointsRemaining] = useState(10)
+  const [pointsRemaining, setPointsRemaining] = useState(27)
   const [initialPoints, setInitialPoints] = useState({
     ...character.attributes,
   })
@@ -49,6 +39,23 @@ export default function CharacterCreation() {
   // Race and class selection indexes
   const [raceIndex, setRaceIndex] = useState(0)
   const [classIndex, setClassIndex] = useState(0)
+
+  const { createCharacter, error, isPending, isSuccess } = useCreateCharacter()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Something went wrong',
+      })
+    }
+  }, [error, toast])
+
+  const handleCreateCharacter = () => {
+    createCharacter(character.name, classIndex, raceIndex, character.attributes)
+  }
 
   // Update race with arrow navigation
   const changeRace = (direction: number) => {
@@ -121,6 +128,13 @@ export default function CharacterCreation() {
               placeholder="Enter hero name..."
               maxLength={20}
             />
+            <Button
+              className="name-confirm-btn font-pixel ml-2"
+              variant="secondary"
+              onClick={handleCreateCharacter}
+            >
+              Confirm
+            </Button>
           </div>
 
           <div className="character-details">
@@ -169,6 +183,12 @@ export default function CharacterCreation() {
                   {character.race === 'Human' && (
                     <span>Versatile: +1 to all attributes</span>
                   )}
+                  {character.race === 'Elf' && (
+                    <span>Agile: +2 Dex, +2 Int, +1 Wis, +1 Cha</span>
+                  )}
+                  {character.race === 'Dwarf' && (
+                    <span>Sturdy: +2 Str, +3 Con, +1 Wis</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -178,7 +198,13 @@ export default function CharacterCreation() {
                 <div className="card-title">Class Bonus:</div>
                 <div className="card-content">
                   {character.class === 'Warrior' && (
-                    <span>+2 Strength, +1 Constitution</span>
+                    <span>+3 Str, +2 Con, +1 Dex</span>
+                  )}
+                  {character.class === 'Mage' && (
+                    <span>+3 Int, +2 Wis, +1 Cha</span>
+                  )}
+                  {character.class === 'Rogue' && (
+                    <span>+3 Dex, +2 Cha, +1 Int</span>
                   )}
                 </div>
               </div>

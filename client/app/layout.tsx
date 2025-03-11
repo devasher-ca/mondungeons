@@ -5,6 +5,8 @@ import BackgroundMouse from './components/BackgroundMouse'
 
 import { Web3Provider } from '@/providers/Web3Provider'
 
+import { Toaster } from '@/components/ui/toaster'
+
 const inter = Inter({ subsets: ['latin'] })
 const pixelFont = Press_Start_2P({
   weight: '400',
@@ -28,6 +30,7 @@ export default function RootLayout({
         <Web3Provider>
           {children}
           <BackgroundMouse />
+          <Toaster />
         </Web3Provider>
       </body>
     </html>

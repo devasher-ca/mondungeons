@@ -125,18 +125,27 @@
   margin-bottom: 1rem;
   width: 100%;
   max-width: 250px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .character-name-input {
   background-color: #1a1a2e;
   color: #fcd34d;
-  font-size: 0.9rem;
-  padding: 0.5rem;
+  font-size: 0.6rem;
+  padding: 0.2rem;
   text-align: center;
+  flex: 1;
 }
 
 .character-name-input::placeholder {
   color: #9ca3af;
+}
+
+.name-confirm-btn {
+  font-size: 0.5rem;
 }
 
 .character-details {
