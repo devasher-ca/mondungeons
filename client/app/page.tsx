@@ -34,15 +34,6 @@ export default function Home() {
 
         <div className="fixed bottom-4 right-4 flex space-x-2">
           <ConnectKitButton />
-          <Button
-            variant="outline"
-            className="font-pixel bg-red-900 border-2 border-red-700 text-amber-300 hover:bg-red-800 hover:border-red-600 shadow-md transition-all duration-200 px-4 py-2 text-xs"
-          >
-            LOG IN
-          </Button>
-          <Button className="font-pixel bg-red-900 border-2 border-red-700 text-amber-300 hover:bg-red-800 hover:border-red-600 shadow-md transition-all duration-200 px-4 py-2 text-xs">
-            SIGN UP
-          </Button>
         </div>
       </div>
     </div>

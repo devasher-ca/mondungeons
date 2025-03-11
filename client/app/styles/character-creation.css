@@ -321,3 +321,54 @@
     max-width: 100%;
   }
 }
+
+/* Class Bonus and Race Trait Cards */
+.trait-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.trait-card {
+  background-color: rgba(20, 20, 30, 0.6);
+  border-radius: 6px;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.trait-card:hover {
+  background-color: rgba(30, 30, 40, 0.8);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.trait-card-row {
+  display: flex;
+  align-items: center;
+}
+
+.trait-card .card-title {
+  display: flex;
+  align-items: center;
+  font-size: 0.5rem;
+  color: #fcd34d;
+  padding-left: 0;
+  margin-bottom: 0;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.trait-card .card-title::before {
+  content: '•';
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  color: #fcd34d;
+}
+
+.trait-card .card-content {
+  font-size: 0.5rem;
+  color: #e5e7eb;
+  padding-left: 0;
+  line-height: 1;
+}

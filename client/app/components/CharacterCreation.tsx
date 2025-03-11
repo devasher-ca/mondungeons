@@ -161,18 +161,28 @@ export default function CharacterCreation() {
             </div>
           </div>
 
-          {/* Move Class Bonus */}
-          <div className="card-title">Class Bonus</div>
-          <div className="card-content">
-            {character.class === 'Warrior' && (
-              <span>+2 Strength, +1 Constitution</span>
-            )}
-          </div>
-          <div className="card-title">Race Trait</div>
-          <div className="card-content">
-            {character.race === 'Human' && (
-              <span>Versatile: +1 to all attributes</span>
-            )}
+          <div className="trait-cards font-pixel">
+            <div className="trait-card race-trait">
+              <div className="trait-card-row">
+                <div className="card-title">Race Trait:</div>
+                <div className="card-content">
+                  {character.race === 'Human' && (
+                    <span>Versatile: +1 to all attributes</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="trait-card class-bonus">
+              <div className="trait-card-row">
+                <div className="card-title">Class Bonus:</div>
+                <div className="card-content">
+                  {character.class === 'Warrior' && (
+                    <span>+2 Strength, +1 Constitution</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

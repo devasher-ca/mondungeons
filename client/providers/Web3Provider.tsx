@@ -41,8 +41,10 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
             '--ck-primary-button-background': 'rgba(127, 29, 29, 1)',
             '--ck-primary-button-border-radius': '2px',
             '--ck-primary-button-hover-background': 'rgba(153, 27, 27, 1)',
-            '--ck-body-background': 'rgba(127, 29, 29, 1)',
             '--ck-font-family': 'var(--font-pixel), cursive',
+            '--ck-border-radius': 8,
+            '--ck-body-background': 'rgba(127, 29, 29, 0.8)',
+            '--ck-body-background-transparent': 'rgba(127, 29, 29, 0.8)',
           }}
         >
           {children}
