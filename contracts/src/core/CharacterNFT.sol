@@ -95,6 +95,10 @@ contract CharacterNFT is
         uint256 createdAt;
     }
 
+    // Add mapping to track used names (exact match, no normalization)
+    mapping(bytes32 => bool) public nameExists;
+
+    // Reduced from 50 to 49 in upgrade (added nameExists mapping)
     uint256[50] private __gap; // Storage gap for future upgrades
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -175,6 +179,55 @@ contract CharacterNFT is
         return (C5Price * expResult) / scaleFactor;
     }
 
+    // Helper function to validate name and generate hash
+    function _validateAndHashName(string memory name) internal pure returns (bytes32) {
+        bytes memory nameBytes = bytes(name);
+        require(nameBytes.length > 0 && nameBytes.length <= MAX_NAME_LENGTH, "Invalid name length");
+        
+        // Check for valid characters
+        for (uint i = 0; i < nameBytes.length; i++) {
+            bytes1 char = nameBytes[i];
+            
+            // Allow underscore
+            bool isUnderscore = (char == 0x5F); // underscore
+            
+            // Allow alphanumeric (a-z, A-Z, 0-9)
+            bool isAlphanumeric = 
+                (char >= 0x30 && char <= 0x39) || // 0-9
+                (char >= 0x41 && char <= 0x5A) || // A-Z
+                (char >= 0x61 && char <= 0x7A);   // a-z
+                
+            // Check if it's a multi-byte character (likely international character)
+            // UTF-8 encoding: characters beyond ASCII start with bytes >= 0xC0
+            bool isMultibyteStart = uint8(char) >= 0xC0;
+            
+            // If it's not alphanumeric, underscore, or start of multibyte sequence, reject
+            require(isAlphanumeric || isUnderscore || isMultibyteStart, "Invalid character in name");
+            
+            // Skip validation for the continuation bytes of multibyte characters
+            // UTF-8 continuation bytes start with 10xxxxxx (0x80-0xBF)
+            if (isMultibyteStart) {
+                // Determine how many bytes to skip based on the first byte
+                uint8 firstByte = uint8(char);
+                uint8 bytesToSkip = 0;
+                
+                if (firstByte >= 0xC0 && firstByte <= 0xDF) bytesToSkip = 1; // 2-byte sequence
+                else if (firstByte >= 0xE0 && firstByte <= 0xEF) bytesToSkip = 2; // 3-byte sequence
+                else if (firstByte >= 0xF0 && firstByte <= 0xF7) bytesToSkip = 3; // 4-byte sequence
+                
+                // Skip the continuation bytes
+                for (uint8 j = 0; j < bytesToSkip && i + 1 < nameBytes.length; j++) {
+                    i++;
+                    // Verify it's a continuation byte (starts with 10xxxxxx)
+                    require(uint8(nameBytes[i]) >= 0x80 && uint8(nameBytes[i]) <= 0xBF, "Invalid UTF-8 sequence");
+                }
+            }
+        }
+        
+        // Generate hash of the original name (case-sensitive)
+        return keccak256(abi.encodePacked(name));
+    }
+
     function createCharacter(
         string memory name,
         Class class,
@@ -182,7 +235,10 @@ contract CharacterNFT is
         Attributes calldata attributeDistribution
     ) public payable whenNotPaused nonReentrant returns (uint256) {
         require(!hasCharacter[msg.sender], "Already has a character");
-        require(bytes(name).length > 0 && bytes(name).length <= MAX_NAME_LENGTH, "Invalid name length");
+        
+        // Validate name and get hash
+        bytes32 nameHash = _validateAndHashName(name);
+        require(!nameExists[nameHash], "Name already taken");
         
         uint256 currentPrice = calculateMintPrice();
         
@@ -231,6 +287,9 @@ contract CharacterNFT is
         _safeMint(msg.sender, tokenId);
         emit CharacterCreated(tokenId, name, class, race);
         
+        // Mark name as taken using the hash
+        nameExists[nameHash] = true;
+        
         if (refund > 0) {
             (bool success, ) = msg.sender.call{value: refund}("");
             require(success, "Refund failed");
@@ -241,10 +300,24 @@ contract CharacterNFT is
 
     function changeName(uint256 tokenId, string memory newName) public payable whenNotPaused {
         require(ownerOf(tokenId) == msg.sender, "Not character owner");
-        require(bytes(newName).length > 0 && bytes(newName).length <= MAX_NAME_LENGTH, "Invalid name length");
         require(msg.value >= nameChangePrice, "Insufficient payment");
         
+        // Validate new name and get hash
+        bytes32 newNameHash = _validateAndHashName(newName);
+        require(!nameExists[newNameHash], "Name already taken");
+        
+        // Get hash of old name to remove from registry
+        bytes32 oldNameHash = keccak256(abi.encodePacked(characters[tokenId].name));
+        
+        // Remove old name from registry
+        nameExists[oldNameHash] = false;
+        
+        // Update to new name
         characters[tokenId].name = newName;
+        
+        // Mark new name as taken
+        nameExists[newNameHash] = true;
+        
         emit NameChanged(tokenId, newName);
     }
 
@@ -419,6 +492,10 @@ contract CharacterNFT is
         
         // Update hasCharacter mapping before burning
         hasCharacter[msg.sender] = false;
+        
+        // Free up the name
+        bytes32 nameHash = keccak256(abi.encodePacked(characters[tokenId].name));
+        nameExists[nameHash] = false;
         
         // Burn the token
         _burn(tokenId);
