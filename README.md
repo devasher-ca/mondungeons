@@ -23,3 +23,49 @@ Mondungeons addresses these issues by focusing on two core pillars: enhancing pl
 ### Target Users
 
 Our target users remain RPG and blockchain game enthusiasts, but now with a sharper focus on players seeking innovative and truly on-chain gameplay experiences.
+
+### Live Website
+
+You can access the live application at [https://app.mondungeons.xyz/](https://app.mondungeons.xyz/)
+
+### Getting Started
+
+#### Prerequisites
+
+- Node.js
+- pnpm
+- MetaMask or compatible wallet
+
+#### Installation
+
+1. Clone the repository:
+
+   ```
+   git clone git@github.com:devasher-ca/mondungeons.git
+   cd mondungeons/client/
+   ```
+
+2. Install dependencies:
+
+   ```
+   pnpm install
+   ```
+
+3. Configure environment variables:
+   ```
+   cp .env.example .env
+   ```
+   Edit the `.env` file with NEXT_PUBLIC_GRAPH_API_URL, replace {api_key} with your
+
+#### Running the Project
+
+1. Start the development server:
+
+   ```
+   pnpm dev
+   ```
+
+2. Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
