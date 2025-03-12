@@ -54,7 +54,7 @@ contract CharacterNFTTest is Test {
         vm.prank(player);
         uint256 tokenId = nft.createCharacter{value: BASE_PRICE}(
             "TestWarrior",
-            CharacterNFT.Class.Warrior,
+            CharacterNFT.ClassType.Warrior,
             CharacterNFT.Race.Human,
             attrs
         );
@@ -65,7 +65,7 @@ contract CharacterNFTTest is Test {
         
         CharacterNFT.Character memory character = nft.getCharacter(tokenId);
         assertEq(character.name, "TestWarrior");
-        assertEq(uint(character.class), uint(CharacterNFT.Class.Warrior));
+        assertEq(uint(character.classType), uint(CharacterNFT.ClassType.Warrior));
         assertEq(uint(character.race), uint(CharacterNFT.Race.Human));
         assertEq(character.level, 1);
     }
@@ -92,14 +92,14 @@ contract CharacterNFTTest is Test {
         vm.prank(player);
         uint256 tokenId = nft.createCharacter{value: BASE_PRICE}(
             name,
-            CharacterNFT.Class(classId),
+            CharacterNFT.ClassType(classId),
             CharacterNFT.Race(raceId),
             attrs
         );
 
         CharacterNFT.Character memory character = nft.getCharacter(tokenId);
         assertEq(character.name, name);
-        assertEq(uint(character.class), classId);
+        assertEq(uint(character.classType), classId);
         assertEq(uint(character.race), raceId);
     }
 
@@ -117,7 +117,7 @@ contract CharacterNFTTest is Test {
         vm.prank(player);
         uint256 tokenId = nft.createCharacter{value: BASE_PRICE}(
             "TestWarrior",
-            CharacterNFT.Class.Warrior,
+            CharacterNFT.ClassType.Warrior,
             CharacterNFT.Race.Human,
             attrs
         );
@@ -144,7 +144,7 @@ contract CharacterNFTTest is Test {
         vm.expectRevert("Insufficient payment");
         nft.createCharacter{value: 0.01 ether}(
             "TestWarrior",
-            CharacterNFT.Class.Warrior,
+            CharacterNFT.ClassType.Warrior,
             CharacterNFT.Race.Human,
             attrs
         );
@@ -164,7 +164,7 @@ contract CharacterNFTTest is Test {
         vm.prank(player);
         nft.createCharacter{value: BASE_PRICE}(
             "TestWarrior",
-            CharacterNFT.Class.Warrior,
+            CharacterNFT.ClassType.Warrior,
             CharacterNFT.Race.Human,
             attrs
         );
@@ -174,7 +174,7 @@ contract CharacterNFTTest is Test {
         vm.expectRevert("Already has a character");
         nft.createCharacter{value: BASE_PRICE}(
             "TestWarrior2",
-            CharacterNFT.Class.Mage,
+            CharacterNFT.ClassType.Mage,
             CharacterNFT.Race.Elf,
             attrs
         );

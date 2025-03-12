@@ -71,7 +71,7 @@ contract CharacterNFT is
     string private _baseTokenURI;
 
     // Enum definitions
-    enum Class { Warrior, Mage, Rogue }
+    enum ClassType { Warrior, Mage, Rogue }
     enum Race { Human, Elf, Dwarf }
 
     // Attribute structure
@@ -87,7 +87,7 @@ contract CharacterNFT is
     // Character structure
     struct Character {
         string name;
-        Class class;
+        ClassType classType;
         Race race;
         uint256 xp;
         uint8 level;
@@ -107,7 +107,7 @@ contract CharacterNFT is
     }
 
     // Events
-    event CharacterCreated(uint256 indexed tokenId, string name, Class class, Race race);
+    event CharacterCreated(uint256 indexed tokenId, string name, ClassType classType, Race race);
     event LevelUp(uint256 indexed tokenId, uint8 newLevel);
     event ExperienceGained(uint256 indexed tokenId, uint256 amount);
     event NameChanged(uint256 indexed tokenId, string newName);
@@ -230,7 +230,7 @@ contract CharacterNFT is
 
     function createCharacter(
         string memory name,
-        Class class,
+        ClassType classType,
         Race race,
         Attributes calldata attributeDistribution
     ) public payable whenNotPaused nonReentrant returns (uint256) {
@@ -256,7 +256,7 @@ contract CharacterNFT is
         
         Attributes memory finalAttributes = _calculateFinalAttributes(
             attributeDistribution, 
-            class, 
+            classType, 
             race
         );
         
@@ -264,7 +264,7 @@ contract CharacterNFT is
         
         characters[tokenId] = Character({
             name: name,
-            class: class,
+            classType: classType,
             race: race,
             xp: 0,
             level: 1,
@@ -285,7 +285,7 @@ contract CharacterNFT is
 
         hasCharacter[msg.sender] = true;
         _safeMint(msg.sender, tokenId);
-        emit CharacterCreated(tokenId, name, class, race);
+        emit CharacterCreated(tokenId, name, classType, race);
         
         // Mark name as taken using the hash
         nameExists[nameHash] = true;
@@ -403,7 +403,7 @@ contract CharacterNFT is
     // Calculate final attributes
     function _calculateFinalAttributes(
         Attributes memory playerDistribution,
-        Class class,
+        ClassType classType,
         Race race
     ) private pure returns (Attributes memory) {
         // Start with base attributes
@@ -435,15 +435,15 @@ contract CharacterNFT is
         }
         
         // Add class bonuses
-        if (class == Class.Warrior) {
+        if (classType == ClassType.Warrior) {
             finalAttrs.strength += 3;
             finalAttrs.constitution += 2;
             finalAttrs.dexterity += 1;
-        } else if (class == Class.Mage) {
+        } else if (classType == ClassType.Mage) {
             finalAttrs.intelligence += 3;
             finalAttrs.wisdom += 2;
             finalAttrs.charisma += 1;
-        } else if (class == Class.Rogue) {
+        } else if (classType == ClassType.Rogue) {
             finalAttrs.dexterity += 3;
             finalAttrs.charisma += 2;
             finalAttrs.intelligence += 1;
@@ -527,16 +527,16 @@ contract CharacterNFT is
         Character memory character = characters[tokenId];
         
         // Convert enum values to integers
-        uint8 classId = uint8(character.class);
-        uint8 raceId = uint8(character.race);
+        uint8 classTypeIndex = uint8(character.classType);
+        uint8 raceIndex = uint8(character.race);
         
         // Encode character data in the URI
         return string(abi.encodePacked(
             _baseTokenURI,
             "?tokenId=", Strings.toString(tokenId),
             "&name=", character.name,
-            "&class=", Strings.toString(classId),
-            "&race=", Strings.toString(raceId),
+            "&classType=", Strings.toString(classTypeIndex),
+            "&race=", Strings.toString(raceIndex),
             "&level=", Strings.toString(character.level),
             "&str=", Strings.toString(character.attributes.strength),
             "&dex=", Strings.toString(character.attributes.dexterity),
