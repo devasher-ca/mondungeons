@@ -1,0 +1,8 @@
+{
+  "monad-testnet": {
+    "CharacterNFT": {
+      "address": "0xf5863Eb189209288F77C05e9861E6F1dc4C180AF",
+      "startBlock": 7374839
+    }
+  }
+}

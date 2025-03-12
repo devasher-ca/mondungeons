@@ -38,14 +38,9 @@ contracts/
 
 ```
 forge script script/DeployCharacterNFT.s.sol --rpc-url https://testnet-rpc.monad.xyz --broadcast --private-key $PRIVATE_KEY
-[⠊] Compiling...
-[⠃] Compiling 47 files with Solc 0.8.26
-[⠒] Solc 0.8.26 finished in 879.76ms
-Compiler run successful!
-Script ran successfully.
 
 == Logs ==
-  CharacterNFT implementation deployed at: 0x8C11C0eBc426740d6e39C219cD6D0148aE5E1Aa3
-  CharacterNFT proxy deployed at: 0x44ff5bE110a188F1086665fffaB45F730214544f
+  CharacterNFT implementation deployed at: 0x5aF713fDd9086876dcbedCfc5bCfe479093E08E4
+  CharacterNFT proxy deployed at: 0xf5863Eb189209288F77C05e9861E6F1dc4C180AF
 
 ```

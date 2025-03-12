@@ -1,0 +1,83 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CharacterNFT
+    network: monad-testnet
+    source:
+      address: "0xf5863Eb189209288F77C05e9861E6F1dc4C180AF"
+      abi: CharacterNFT
+      startBlock: 7374839
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - ApprovalForAll
+        - AttributePointsAssigned
+        - CharacterCreated
+        - ExperienceGained
+        - Initialized
+        - LevelUp
+        - NameChanged
+        - OwnershipTransferred
+        - Paused
+        - PopulationChanged
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - Transfer
+        - Unpaused
+        - UpgradeAuthorized
+        - Upgraded
+        - XPManagerAdded
+        - XPManagerRemoved
+      abis:
+        - name: CharacterNFT
+          file: ./abis/CharacterNFT.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: AttributePointsAssigned(indexed uint256,uint8)
+          handler: handleAttributePointsAssigned
+        - event: CharacterCreated(indexed uint256,string,uint8,uint8)
+          handler: handleCharacterCreated
+        - event: ExperienceGained(indexed uint256,uint256)
+          handler: handleExperienceGained
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: LevelUp(indexed uint256,uint8)
+          handler: handleLevelUp
+        - event: NameChanged(indexed uint256,string)
+          handler: handleNameChanged
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Paused(address)
+          handler: handlePaused
+        - event: PopulationChanged(uint256,uint256)
+          handler: handlePopulationChanged
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: UpgradeAuthorized(indexed address,indexed address)
+          handler: handleUpgradeAuthorized
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: XPManagerAdded(address)
+          handler: handleXPManagerAdded
+        - event: XPManagerRemoved(address)
+          handler: handleXPManagerRemoved
+      file: ./src/character-nft.ts
