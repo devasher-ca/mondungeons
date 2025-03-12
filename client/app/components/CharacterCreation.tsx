@@ -61,7 +61,7 @@ export default function CharacterCreation() {
         ...character.attributes,
       })
     }
-  }, [character.race, character.classType])
+  }, [character.race, character.classType, character.attributes])
 
   useEffect(() => {
     if (createError) {
