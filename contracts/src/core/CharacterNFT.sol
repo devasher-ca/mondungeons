@@ -44,9 +44,6 @@ contract CharacterNFT is
     // Record unassigned attribute points
     mapping(uint256 => uint8) public unassignedPoints;
     
-    // Record if an address has created a character
-    mapping(address => bool) public hasCharacter;
-
     // State variables
     mapping(uint256 => Character) private characters;
     uint256 private _tokenIdCounter;
@@ -234,8 +231,6 @@ contract CharacterNFT is
         Race race,
         Attributes calldata attributeDistribution
     ) public payable whenNotPaused nonReentrant returns (uint256) {
-        require(!hasCharacter[msg.sender], "Already has a character");
-        
         // Validate name and get hash
         bytes32 nameHash = _validateAndHashName(name);
         require(!nameExists[nameHash], "Name already taken");
@@ -283,7 +278,6 @@ contract CharacterNFT is
             unassignedPoints[tokenId] = INITIAL_ATTRIBUTE_POINTS - usedPoints;
         }
 
-        hasCharacter[msg.sender] = true;
         _safeMint(msg.sender, tokenId);
         emit CharacterCreated(tokenId, name, classType, race);
         
@@ -489,9 +483,6 @@ contract CharacterNFT is
             currentPopulation--;
         }
         emit PopulationChanged(currentPopulation + 1, currentPopulation);
-        
-        // Update hasCharacter mapping before burning
-        hasCharacter[msg.sender] = false;
         
         // Free up the name
         bytes32 nameHash = keccak256(abi.encodePacked(characters[tokenId].name));

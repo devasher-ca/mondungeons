@@ -61,7 +61,6 @@ contract CharacterNFTTest is Test {
 
         assertEq(tokenId, 0);
         assertEq(nft.ownerOf(tokenId), player);
-        assertTrue(nft.hasCharacter(player));
         
         CharacterNFT.Character memory character = nft.getCharacter(tokenId);
         assertEq(character.name, "TestWarrior");

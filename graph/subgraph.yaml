@@ -8,9 +8,9 @@ dataSources:
     name: CharacterNFT
     network: monad-testnet
     source:
-      address: "0xf5863Eb189209288F77C05e9861E6F1dc4C180AF"
+      address: "0x27D0857148D7F44D05082EdEF15DA56187339a15"
       abi: CharacterNFT
-      startBlock: 7374839
+      startBlock: 7378955
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
