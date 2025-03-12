@@ -187,7 +187,11 @@ export const abi = [
     name: 'createCharacter',
     inputs: [
       { name: 'name', type: 'string', internalType: 'string' },
-      { name: 'class', type: 'uint8', internalType: 'enum CharacterNFT.Class' },
+      {
+        name: 'classType',
+        type: 'uint8',
+        internalType: 'enum CharacterNFT.ClassType',
+      },
       { name: 'race', type: 'uint8', internalType: 'enum CharacterNFT.Race' },
       {
         name: 'attributeDistribution',
@@ -242,9 +246,9 @@ export const abi = [
         components: [
           { name: 'name', type: 'string', internalType: 'string' },
           {
-            name: 'class',
+            name: 'classType',
             type: 'uint8',
-            internalType: 'enum CharacterNFT.Class',
+            internalType: 'enum CharacterNFT.ClassType',
           },
           {
             name: 'race',
@@ -298,13 +302,6 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'hasCharacter',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'hasRole',
     inputs: [
       { name: 'role', type: 'bytes32', internalType: 'bytes32' },
@@ -346,6 +343,13 @@ export const abi = [
     name: 'nameChangePrice',
     inputs: [],
     outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'nameExists',
+    inputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -614,10 +618,10 @@ export const abi = [
       },
       { name: 'name', type: 'string', indexed: false, internalType: 'string' },
       {
-        name: 'class',
+        name: 'classType',
         type: 'uint8',
         indexed: false,
-        internalType: 'enum CharacterNFT.Class',
+        internalType: 'enum CharacterNFT.ClassType',
       },
       {
         name: 'race',

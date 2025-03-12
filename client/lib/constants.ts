@@ -1,5 +1,5 @@
 export const CHARACTER_CONTRACT_ADDRESS =
-  '0x44ff5bE110a188F1086665fffaB45F730214544f'
+  '0x27D0857148D7F44D05082EdEF15DA56187339a15'
 
 export const RACES = ['Human', 'Elf', 'Dwarf']
 export const CLASSES = ['Warrior', 'Mage', 'Rogue']

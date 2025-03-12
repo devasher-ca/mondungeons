@@ -1,11 +1,15 @@
 import * as React from 'react'
 import {
   type BaseError,
+  useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi'
 import { abi } from '../lib/abi'
-import { CHARACTER_CONTRACT_ADDRESS } from '../lib/constants'
+import {
+  CHARACTER_CONTRACT_ADDRESS,
+  BASE_ATTRIBUTE_VALUE,
+} from '../lib/constants'
 
 type Attributes = {
   strength: number
@@ -25,19 +29,40 @@ export const useCreateCharacter = () => {
     isSuccess,
   } = useWriteContract()
 
+  const { data: mintPrice, refetch: refetchMintPrice } = useReadContract({
+    address: CHARACTER_CONTRACT_ADDRESS,
+    abi,
+    functionName: 'calculateMintPrice',
+  })
+
   const createCharacter = async (
     characterName: string,
     classIndex: number,
     raceIndex: number,
     attributeDistribution: Attributes,
   ) => {
+    await refetchMintPrice()
+
+    const reducedAttributeDistribution = Object.fromEntries(
+      Object.entries(attributeDistribution).map(([key, value]) => [
+        key,
+        value - BASE_ATTRIBUTE_VALUE,
+      ]),
+    ) as Attributes
+
     writeContract({
       address: CHARACTER_CONTRACT_ADDRESS,
       abi,
       functionName: 'createCharacter',
-      args: [characterName, classIndex, raceIndex, attributeDistribution],
+      args: [
+        characterName,
+        classIndex,
+        raceIndex,
+        reducedAttributeDistribution,
+      ],
+      value: mintPrice,
     })
   }
 
-  return { createCharacter, error, isPending, isSuccess }
+  return { createCharacter, error, isPending, isSuccess, mintPrice }
 }
