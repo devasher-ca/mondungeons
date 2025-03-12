@@ -56,7 +56,7 @@ export default function CharacterCreation() {
 
     setBonusAttributes(attributes)
 
-    if (!minimumAttribute) {
+    if (!minimumAttribute && character.id !== '') {
       setMinimumAttribute({
         ...character.attributes,
       })
