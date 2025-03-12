@@ -104,11 +104,11 @@ contract CharacterNFT is
     }
 
     // Events
-    event CharacterCreated(uint256 indexed tokenId, string name, ClassType classType, Race race);
+    event CharacterCreated(uint256 indexed tokenId, string name, ClassType classType, Race race, uint8 unassignedPoints, Attributes attributes);
     event LevelUp(uint256 indexed tokenId, uint8 newLevel);
-    event ExperienceGained(uint256 indexed tokenId, uint256 amount);
+    event ExperienceGained(uint256 indexed tokenId, uint256 amount, uint256 xp, uint8 level);
     event NameChanged(uint256 indexed tokenId, string newName);
-    event AttributePointsAssigned(uint256 indexed tokenId, uint8 pointsUsed);
+    event AttributePointsAssigned(uint256 indexed tokenId, uint8 pointsUsed, uint8 unassignedPoints, uint8 strength, uint8 dexterity, uint8 constitution, uint8 intelligence, uint8 wisdom, uint8 charisma);
     event XPManagerAdded(address manager);
     event XPManagerRemoved(address manager);
     event PopulationChanged(uint256 oldPopulation, uint256 newPopulation);
@@ -279,7 +279,7 @@ contract CharacterNFT is
         }
 
         _safeMint(msg.sender, tokenId);
-        emit CharacterCreated(tokenId, name, classType, race);
+        emit CharacterCreated(tokenId, name, classType, race, unassignedPoints[tokenId], finalAttributes);
         
         // Mark name as taken using the hash
         nameExists[nameHash] = true;
@@ -340,7 +340,7 @@ contract CharacterNFT is
         character.attributes.charisma += cha;
         
         unassignedPoints[tokenId] -= pointsToUse;
-        emit AttributePointsAssigned(tokenId, pointsToUse);
+        emit AttributePointsAssigned(tokenId, pointsToUse, unassignedPoints[tokenId], character.attributes.strength, character.attributes.dexterity, character.attributes.constitution, character.attributes.intelligence, character.attributes.wisdom, character.attributes.charisma);
     }
 
     // Increase experience (only addresses with the XP_MANAGER_ROLE can call)
@@ -359,7 +359,7 @@ contract CharacterNFT is
             requiredXPForNextLevel = _getRequiredXPForNextLevel(character.level);
         }
         
-        emit ExperienceGained(tokenId, amount);
+        emit ExperienceGained(tokenId, amount, character.xp, character.level);
     }
 
     // Add XP manager

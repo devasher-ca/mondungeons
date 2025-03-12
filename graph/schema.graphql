@@ -1,5 +1,6 @@
 type CharacterCreated @entity {
   id: Bytes!
+  owner: Bytes!
   tokenId: BigInt! # uint256
   name: String! # string
   classType: Int! # uint8

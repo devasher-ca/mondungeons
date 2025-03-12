@@ -40,8 +40,8 @@ contracts/
 forge script script/DeployCharacterNFT.s.sol --rpc-url https://testnet-rpc.monad.xyz --broadcast --private-key $PRIVATE_KEY
 
 == Logs ==
-  CharacterNFT implementation deployed at: 0x1e43960BE19396Bf87bDDD2a6944c495Ae0ac8CB
-  CharacterNFT proxy deployed at: 0x27D0857148D7F44D05082EdEF15DA56187339a15
+  CharacterNFT implementation deployed at: 0x9f4Bdeb021EC02E0bdC114e5Cbf699E4509B5b1F
+  CharacterNFT proxy deployed at: 0x3bE1bF844ab3E55E73fF038a39307Ae78a7dEc89
 
 ```
 
