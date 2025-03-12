@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter, Press_Start_2P } from 'next/font/google'
 import BackgroundMouse from './components/BackgroundMouse'
+import BackgroundMusic from './components/BackgroundMusic'
 
 import { Web3Provider } from '@/providers/Web3Provider'
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         <Web3Provider>
           {children}
           <BackgroundMouse />
+          <BackgroundMusic />
           <Toaster />
         </Web3Provider>
       </body>
