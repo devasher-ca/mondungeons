@@ -6,9 +6,13 @@ import { Settings } from 'lucide-react'
 import TopNavigation from './components/TopNavigation'
 import CharacterCreation from './components/CharacterCreation'
 import { ConnectKitButton } from 'connectkit'
+import { useAccount } from 'wagmi'
+import { useCharacter } from '@/providers/CharacterProvider'
 
 export default function Home() {
   const [showCharacterCreation, setShowCharacterCreation] = useState(true)
+  const { isConnected } = useAccount()
+  const { character } = useCharacter()
 
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
@@ -18,7 +22,15 @@ export default function Home() {
 
         {/* Main Content */}
         <main className="container mx-auto py-8 px-4">
-          {showCharacterCreation && <CharacterCreation />}
+          {isConnected ? (
+            showCharacterCreation && <CharacterCreation />
+          ) : (
+            <div className="text-center py-10">
+              <h2 className="text-amber-400 text-xl mb-4">
+                Connect your wallet to continue
+              </h2>
+            </div>
+          )}
         </main>
 
         {/* Bottom Buttons */}

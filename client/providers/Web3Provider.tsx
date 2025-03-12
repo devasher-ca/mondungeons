@@ -4,6 +4,7 @@ import { WagmiProvider, createConfig, http } from 'wagmi'
 import { monadTestnet } from 'wagmi/chains'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
+import { CharacterProvider } from './CharacterProvider'
 
 // Define the target chain for easy reference
 export const targetChain = monadTestnet
@@ -26,7 +27,15 @@ const config = createConfig(
   }),
 )
 
-const queryClient = new QueryClient()
+// Create a client with default options
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -55,7 +64,7 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
             '--ck-body-background-transparent': 'rgba(127, 29, 29, 0.8)',
           }}
         >
-          {children}
+          <CharacterProvider>{children}</CharacterProvider>
         </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

@@ -41,7 +41,8 @@ export const useCreateCharacter = () => {
     raceIndex: number,
     attributeDistribution: Attributes,
   ) => {
-    await refetchMintPrice()
+    const { data: price } = await refetchMintPrice()
+    console.log('mintPrice', price)
 
     const reducedAttributeDistribution = Object.fromEntries(
       Object.entries(attributeDistribution).map(([key, value]) => [
@@ -60,7 +61,7 @@ export const useCreateCharacter = () => {
         raceIndex,
         reducedAttributeDistribution,
       ],
-      value: mintPrice,
+      value: price,
     })
   }
 

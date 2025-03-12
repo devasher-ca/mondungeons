@@ -381,3 +381,44 @@
   padding-left: 0;
   line-height: 1;
 }
+
+/* Static race and class display when success */
+.character-race-static,
+.character-class-static {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(20, 20, 30, 0.7);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+/* Disabled state styling */
+.selector-btn:disabled,
+.attribute-btn:disabled,
+.reset-btn:disabled,
+.name-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #5a1515;
+}
+
+.selector-btn:disabled:hover,
+.attribute-btn:disabled:hover,
+.reset-btn:disabled:hover,
+.name-confirm-btn:disabled:hover {
+  transform: none;
+  background-color: #5a1515;
+}
+
+/* Loading state for buttons */
+.name-confirm-btn:disabled {
+  background-color: #5a1515;
+  color: #d4d4d4;
+}
+
+/* Input disabled state */
+.character-name-input:disabled {
+  opacity: 0.7;
+  background-color: #141420;
+}

@@ -30,15 +30,6 @@ export default function BackgroundMouse() {
 
       const newDuration = 3 + Math.random() * 7
       mouse.style.transition = `left ${newDuration}s linear`
-
-      console.log(
-        'newPosition, targetPosition, currentIsReverse, isReverse, newDuration',
-        newPosition,
-        targetPosition,
-        currentIsReverse,
-        isReverse,
-        newDuration,
-      )
     }
     // setRandomPosition()
 
