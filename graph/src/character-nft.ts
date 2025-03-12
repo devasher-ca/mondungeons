@@ -37,10 +37,14 @@ export function handleCharacterCreated(event: CharacterCreatedEvent): void {
   let entity = CharacterCreated.load(id)
   if (!entity) {
     entity = new CharacterCreated(id)
+
+    entity.tokenId = tokenId
+    entity.owner = Address.zero()
+
+    entity.level = 1
+    entity.xp = BigInt.fromI32(0)
   }
 
-  entity.owner = Address.zero()
-  entity.tokenId = tokenId
   entity.name = event.params.name
   entity.classType = event.params.classType
   entity.race = event.params.race
@@ -55,9 +59,6 @@ export function handleCharacterCreated(event: CharacterCreatedEvent): void {
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
-
-  entity.level = 1
-  entity.xp = BigInt.fromI32(0)
 
   entity.save()
 }
