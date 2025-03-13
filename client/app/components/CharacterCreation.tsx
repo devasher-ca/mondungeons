@@ -17,16 +17,19 @@ import { useAssignAttributes } from '@/hooks/use-assign-attributes'
 import { useCharacter } from '@/providers/CharacterProvider'
 import { INIT_POINTS } from '@/lib/constants'
 import { calculateBonusAttributes } from '@/lib/utils'
-import { CharacterAttributes } from '@/lib/interfaces'
+import { Character, CharacterAttributes } from '@/lib/interfaces'
+import { useBurnCharacter } from '@/hooks/use-burn-character'
 
 export default function CharacterCreation() {
-  const { character, setCharacter } = useCharacter()
+  const { character, setCharacter, refetchCharacter } = useCharacter()
 
   const {
     createCharacter,
     error: createError,
     isPending: createPending,
     isSuccess: createSuccess,
+    tokenId: newTokenId,
+    isReceiptSuccess,
   } = useCreateCharacter()
 
   const {
@@ -35,6 +38,13 @@ export default function CharacterCreation() {
     isPending: assignPending,
     isSuccess: assignSuccess,
   } = useAssignAttributes()
+
+  const {
+    burnCharacter,
+    error: burnError,
+    isPending: burnPending,
+    isSuccess: burnSuccess,
+  } = useBurnCharacter()
 
   const { toast } = useToast()
 
@@ -83,6 +93,20 @@ export default function CharacterCreation() {
       })
     }
   }, [createError, createSuccess])
+
+  // Add this effect to update the character with the new tokenId
+  useEffect(() => {
+    if (createSuccess && isReceiptSuccess && newTokenId) {
+      setCharacter({
+        ...character,
+        tokenId: newTokenId,
+        id: newTokenId,
+      })
+
+      // Optionally refetch character data from the graph
+      // refetchCharacter()
+    }
+  }, [createSuccess, isReceiptSuccess, newTokenId])
 
   const handleCreateCharacter = () => {
     setIsConfirmButtonDisabled(true)
@@ -134,6 +158,27 @@ export default function CharacterCreation() {
       })
     }
   }, [assignError, assignSuccess, toast])
+
+  const handleBurnCharacter = () => {
+    burnCharacter(parseInt(character.tokenId))
+  }
+
+  useEffect(() => {
+    if (burnError) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: burnError.message || 'Something went wrong',
+      })
+    }
+
+    if (burnSuccess) {
+      toast({
+        title: 'Success',
+        description: 'Character burned successfully!',
+      })
+    }
+  }, [burnError, burnSuccess, toast])
 
   // Update race with arrow navigation
   const changeRace = (direction: number) => {

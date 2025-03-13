@@ -10,6 +10,8 @@ import {
   CHARACTER_CONTRACT_ADDRESS,
   BASE_ATTRIBUTE_VALUE,
 } from '../lib/constants'
+import { useState, useEffect } from 'react'
+import { decodeEventLog } from 'viem'
 
 type Attributes = {
   strength: number
@@ -28,6 +30,50 @@ export const useCreateCharacter = () => {
     writeContract,
     isSuccess,
   } = useWriteContract()
+
+  const { data: receipt, isSuccess: isReceiptSuccess } =
+    useWaitForTransactionReceipt({
+      hash,
+    })
+
+  const [tokenId, setTokenId] = useState<string | null>(null)
+
+  // Extract tokenId from transaction receipt
+  useEffect(() => {
+    if (receipt && isReceiptSuccess) {
+      // Find the CharacterCreated event in the logs
+      const characterCreatedEvent = receipt.logs
+        .map((log) => {
+          try {
+            // Try to parse the log as a CharacterCreated event
+            return {
+              ...log,
+              args: decodeEventLog({
+                abi,
+                data: log.data,
+                topics: log.topics,
+              }).args,
+              name: decodeEventLog({
+                abi,
+                data: log.data,
+                topics: log.topics,
+              }).eventName,
+            }
+          } catch {
+            return null
+          }
+        })
+        .find((log) => log?.name === 'CharacterCreated')
+
+      // Type narrowing to ensure tokenId exists
+      if (
+        characterCreatedEvent?.args &&
+        'tokenId' in characterCreatedEvent.args
+      ) {
+        setTokenId(characterCreatedEvent.args.tokenId.toString())
+      }
+    }
+  }, [receipt, isReceiptSuccess])
 
   const { data: mintPrice, refetch: refetchMintPrice } = useReadContract({
     address: CHARACTER_CONTRACT_ADDRESS,
@@ -65,5 +111,13 @@ export const useCreateCharacter = () => {
     })
   }
 
-  return { createCharacter, error, isPending, isSuccess, mintPrice }
+  return {
+    createCharacter,
+    error,
+    isPending,
+    isSuccess,
+    mintPrice,
+    tokenId,
+    isReceiptSuccess,
+  }
 }
