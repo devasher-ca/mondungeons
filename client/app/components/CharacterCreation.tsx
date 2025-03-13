@@ -387,7 +387,7 @@ export default function CharacterCreation() {
         {/* Attributes */}
         <div className="character-section">
           <div className="attributes-header">
-            <h2 className="font-pixel text-amber-300">ATTRIBUTES</h2>
+            <h2 className="font-pixel text-amber-300 ">ATTRIBUTES</h2>
             <div className="points-remaining">
               <span className="font-pixel text-amber-400">
                 Points: {character.unassignedPoints}
