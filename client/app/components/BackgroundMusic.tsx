@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Slider } from '@/components/ui/slider'
-import { Button } from '@/components/ui/button'
-import { Volume2, VolumeX, Play, Pause } from 'lucide-react'
+import { useMusicSettings } from '@/providers/MusicSettingsProvider'
 
 export default function BackgroundMusic() {
-  const [volume, setVolume] = useState(0.5)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const [volume, setVolume] = useState(0.3)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioLoaded, setAudioLoaded] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const { isMusicSettingsOpen, toggleMusicSettings } = useMusicSettings()
 
   useEffect(() => {
     // Create audio element
@@ -35,22 +34,28 @@ export default function BackgroundMusic() {
   useEffect(() => {
     // Update volume when it changes
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume
+      audioRef.current.volume = volume
     }
-  }, [volume, isMuted])
+  }, [volume])
 
-  // Listen for toggle event
+  // Handle clicks outside the panel to close it
   useEffect(() => {
-    const handleToggle = () => {
-      setIsOpen((prev) => !prev)
+    if (!isMusicSettingsOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node)
+      ) {
+        toggleMusicSettings()
+      }
     }
 
-    window.addEventListener('toggleMusicSettings', handleToggle)
-
+    document.addEventListener('mousedown', handleClickOutside)
     return () => {
-      window.removeEventListener('toggleMusicSettings', handleToggle)
+      document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
+  }, [isMusicSettingsOpen, toggleMusicSettings])
 
   // Handle user interaction with the document
   useEffect(() => {
@@ -76,61 +81,15 @@ export default function BackgroundMusic() {
     }
   }, [audioLoaded, isPlaying])
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted)
-  }
-
-  const togglePlay = () => {
-    if (!audioRef.current) return
-
-    if (isPlaying) {
-      audioRef.current.pause()
-      setIsPlaying(false)
-    } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true)
-        })
-        .catch((error) => {
-          console.log('Audio play failed:', error)
-        })
-    }
-  }
-
-  if (!isOpen) return null
+  if (!isMusicSettingsOpen) return null
 
   return (
-    <div className="fixed bottom-16 left-4 bg-stone-800 border-2 border-amber-700 p-4 rounded-md shadow-lg z-50 w-64">
+    <div
+      ref={panelRef}
+      className="fixed bottom-16 left-4 bg-stone-800 border-2 border-amber-700 p-4 rounded-md shadow-lg z-50 w-64"
+    >
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-pixel text-amber-400 text-sm">Music Settings</h3>
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={togglePlay}
-            className="h-8 w-8 p-0"
-            disabled={!audioLoaded}
-          >
-            {isPlaying ? (
-              <Pause className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Play className="h-4 w-4 text-amber-400" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleMute}
-            className="h-8 w-8 p-0"
-          >
-            {isMuted ? (
-              <VolumeX className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Volume2 className="h-4 w-4 text-amber-400" />
-            )}
-          </Button>
-        </div>
       </div>
       <div className="mb-2 text-xs text-amber-300 font-pixel">Volume</div>
       <Slider
@@ -141,11 +100,6 @@ export default function BackgroundMusic() {
         onValueChange={(value) => setVolume(value[0] / 100)}
         className="my-2"
       />
-      {!isPlaying && (
-        <div className="mt-3 text-xs text-amber-200">
-          Click the play button to start music
-        </div>
-      )}
     </div>
   )
 }

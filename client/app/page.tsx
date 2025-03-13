@@ -8,32 +8,16 @@ import CharacterCreation from './components/CharacterCreation'
 import { ConnectKitButton } from 'connectkit'
 import { useAccount } from 'wagmi'
 import { useCharacter } from '@/providers/CharacterProvider'
-
-// Create a custom event for toggling music settings
-const toggleMusicEvent = new Event('toggleMusicSettings')
+import { useMusicSettings } from '@/providers/MusicSettingsProvider'
 
 export default function Home() {
   const [showCharacterCreation, setShowCharacterCreation] = useState(true)
-  const [showMusicSettings, setShowMusicSettings] = useState(false)
   const { isConnected } = useAccount()
   const { character } = useCharacter()
-
-  useEffect(() => {
-    // Add event listener for the custom event
-    window.addEventListener('toggleMusicSettings', () => {
-      setShowMusicSettings((prev) => !prev)
-    })
-
-    return () => {
-      window.removeEventListener('toggleMusicSettings', () => {
-        setShowMusicSettings((prev) => !prev)
-      })
-    }
-  }, [])
+  const { toggleMusicSettings } = useMusicSettings()
 
   const handleSettingsClick = () => {
-    // Dispatch the custom event
-    window.dispatchEvent(toggleMusicEvent)
+    toggleMusicSettings()
   }
 
   return (

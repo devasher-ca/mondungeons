@@ -5,6 +5,7 @@ import BackgroundMouse from './components/BackgroundMouse'
 import BackgroundMusic from './components/BackgroundMusic'
 
 import { Web3Provider } from '@/providers/Web3Provider'
+import { MusicSettingsProvider } from '@/providers/MusicSettingsProvider'
 
 import { Toaster } from '@/components/ui/toaster'
 
@@ -29,10 +30,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} ${pixelFont.variable}`}>
         <Web3Provider>
-          {children}
-          <BackgroundMouse />
-          <BackgroundMusic />
-          <Toaster />
+          <MusicSettingsProvider>
+            {children}
+            <BackgroundMouse />
+            <BackgroundMusic />
+            <Toaster />
+          </MusicSettingsProvider>
         </Web3Provider>
       </body>
     </html>
