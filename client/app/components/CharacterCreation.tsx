@@ -262,7 +262,7 @@ export default function CharacterCreation() {
               }
               placeholder="Enter hero name..."
               maxLength={20}
-              disabled={createPending || createSuccess}
+              disabled={createPending || createSuccess || character.id !== ''}
             />
             {!createSuccess && character.id === '' && (
               <Button

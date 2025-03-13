@@ -43,6 +43,18 @@ export default function BackgroundMusic() {
     if (!isMusicSettingsOpen) return
 
     const handleClickOutside = (event: MouseEvent) => {
+      // Check if the click target is the settings button or its children
+      const settingsButton = document.querySelector(
+        'button[class*="border-amber-700"]',
+      )
+      if (
+        settingsButton &&
+        (settingsButton === event.target ||
+          settingsButton.contains(event.target as Node))
+      ) {
+        return // Don't close if clicking on the settings button
+      }
+
       if (
         panelRef.current &&
         !panelRef.current.contains(event.target as Node)
