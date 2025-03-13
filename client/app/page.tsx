@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Settings } from 'lucide-react'
 import TopNavigation from './components/TopNavigation'
 import CharacterCreation from './components/CharacterCreation'
+import Equipment from './components/Equipment'
 import { ConnectKitButton } from 'connectkit'
 import { useAccount } from 'wagmi'
 import { useCharacter } from '@/providers/CharacterProvider'
@@ -12,6 +13,7 @@ import { useMusicSettings } from '@/providers/MusicSettingsProvider'
 
 export default function Home() {
   const [showCharacterCreation, setShowCharacterCreation] = useState(true)
+  const [activeTab, setActiveTab] = useState('Character')
   const { isConnected } = useAccount()
   const { character } = useCharacter()
   const { toggleMusicSettings } = useMusicSettings()
@@ -20,16 +22,25 @@ export default function Home() {
     toggleMusicSettings()
   }
 
+  const handleTabChange = (tabName: string) => {
+    setActiveTab(tabName)
+  }
+
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
       <div className="relative z-10">
         {/* Top Navigation Bar */}
-        <TopNavigation />
+        <TopNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Main Content */}
         <main className="container mx-auto py-8 px-4">
           {isConnected ? (
-            showCharacterCreation && <CharacterCreation />
+            <>
+              {showCharacterCreation && activeTab === 'Character' && (
+                <CharacterCreation />
+              )}
+              {activeTab === 'Equipment' && <Equipment />}
+            </>
           ) : (
             <div className="text-center py-10">
               <h2 className="text-amber-400 text-xl mb-4">

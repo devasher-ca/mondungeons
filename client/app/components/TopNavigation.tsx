@@ -22,14 +22,22 @@ type NavItem = {
   active?: boolean
 }
 
-export default function TopNavigation() {
+interface TopNavigationProps {
+  activeTab: string
+  onTabChange: (tabName: string) => void
+}
+
+export default function TopNavigation({
+  activeTab,
+  onTabChange,
+}: TopNavigationProps) {
   // Navigation items array
   const navItems: NavItem[] = [
-    { name: 'Leaders', icon: Crown },
-    { name: 'Equipment', icon: Sword },
-    { name: 'Character', icon: User, active: true },
-    { name: 'Skins', icon: Palette },
-    { name: 'Guilds', icon: Users },
+    { name: 'Leaders', icon: Crown, active: activeTab === 'Leaders' },
+    { name: 'Equipment', icon: Sword, active: activeTab === 'Equipment' },
+    { name: 'Character', icon: User, active: activeTab === 'Character' },
+    { name: 'Skins', icon: Palette, active: activeTab === 'Skins' },
+    { name: 'Guilds', icon: Users, active: activeTab === 'Guilds' },
   ]
 
   return (
@@ -86,6 +94,7 @@ export default function TopNavigation() {
                 key={index}
                 variant="ghost"
                 className="font-pixel text-sm text-gray-300 hover:text-white hover:bg-transparent"
+                onClick={() => onTabChange(item.name)}
               >
                 <Icon className="w-4 h-4 mr-1" />
                 <span>{item.name}</span>
