@@ -24,9 +24,109 @@ Mondungeons addresses these issues by focusing on two core pillars: enhancing pl
 
 Our target users remain RPG and blockchain game enthusiasts, but now with a sharper focus on players seeking innovative and truly on-chain gameplay experiences.
 
-### Live Website
+## Technical Documentation
 
-You can access the live application at [https://app.mondungeons.xyz/](https://app.mondungeons.xyz/)
+### Project Architecture
+
+Mondungeons follows a modern web3 architecture with two main components:
+
+1. **Smart Contracts (Backend)**: Solidity contracts deployed on the Monad blockchain
+2. **Web Application (Frontend)**: Next.js-based web application for user interaction
+
+#### Smart Contract Architecture
+
+The smart contract system is built using Solidity and follows a modular design pattern:
+
+- **Core Contracts**:
+
+  - `CharacterNFT.sol`: ERC721-based NFT implementation for character management
+  - `GameRegistry.sol`: Central registry for game state and coordination
+
+- **Gameplay Contracts**: Handle game mechanics, battles, and world interaction
+
+- **Item Contracts**: Manage in-game items, equipment, and their properties
+
+- **Libraries**: Utility functions and shared logic
+
+#### Frontend Architecture
+
+The frontend is built with Next.js and follows a component-based architecture:
+
+- **App Router**: Modern Next.js app router for page routing and layout management
+- **Components**: Reusable UI components built with React
+- **Providers**: Context providers for global state management
+- **Hooks**: Custom React hooks for blockchain interaction and game logic
+
+### Technologies Used
+
+#### Smart Contracts
+
+- **Language**: Solidity ^0.8.20
+- **Development Framework**: Foundry
+- **Libraries**:
+  - OpenZeppelin Contracts (ERC721, Access Control, Upgradeable Contracts)
+  - Forge Standard Library
+
+#### Frontend
+
+- **Framework**: Next.js 15.x
+- **UI Libraries**:
+  - React 19.x
+  - Tailwind CSS
+  - Radix UI Components
+  - Lucide React (Icons)
+- **Web3 Integration**:
+  - ConnectKit
+  - wagmi
+  - viem
+- **State Management**:
+  - React Context API
+  - React Query
+
+### Design Choices
+
+#### Smart Contract Design
+
+- **Upgradeable Contracts**: Using OpenZeppelin's upgradeable contract patterns to allow for future improvements
+- **Access Control**: Role-based access control for different permission levels
+- **Gas Optimization**: Optimized for Monad's high-performance environment
+- **Security**: Implementing reentrancy guards and other security best practices
+
+#### Frontend Design
+
+- **Server Components**: Leveraging Next.js server components for improved performance
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Web3 UX**: Streamlined wallet connection and transaction experience
+- **Component Library**: Custom UI components built on Radix UI primitives
+
+### External Dependencies
+
+#### Smart Contract Dependencies
+
+- OpenZeppelin Contracts
+- Forge Standard Library
+
+#### Frontend Dependencies
+
+- Next.js ecosystem
+- Tailwind CSS
+- Radix UI component library
+- ConnectKit and wagmi for wallet integration
+- React Query for data fetching
+
+### Development Environment
+
+#### Smart Contract Development
+
+- Foundry for compilation, testing, and deployment
+- Monad testnet for development and testing
+
+#### Frontend Development
+
+- Node.js
+- pnpm package manager
+- TypeScript for type safety
+- ESLint for code quality
 
 ### Getting Started
 
@@ -35,6 +135,7 @@ You can access the live application at [https://app.mondungeons.xyz/](https://ap
 - Node.js
 - pnpm
 - MetaMask or compatible wallet
+- Foundry (for smart contract development)
 
 #### Installation
 
@@ -69,3 +170,7 @@ You can access the live application at [https://app.mondungeons.xyz/](https://ap
    ```
    http://localhost:3000
    ```
+
+### Live Website
+
+You can access the live application at [https://app.mondungeons.xyz/](https://app.mondungeons.xyz/)
