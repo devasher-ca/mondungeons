@@ -42,8 +42,14 @@ export interface RawCharacter {
 }
 
 // Raw query result interface
+// export interface RawCharacterQueryResult {
+//   characterCreateds: RawCharacter[]
+// }
+
 export interface RawCharacterQueryResult {
-  characterCreateds: RawCharacter[]
+  characterCreateds: {
+    items: RawCharacter[]
+  }
 }
 
 // Query result interface

@@ -55,7 +55,7 @@ You can access the live application at [https://app.mondungeons.xyz/](https://ap
    ```
    cp .env.example .env
    ```
-   Edit the `.env` file with NEXT_PUBLIC_GRAPH_API_URL, replace {api_key} with your
+   Edit the `.env` file with NEXT_PUBLIC_GHOST_API_URL
 
 #### Running the Project
 
